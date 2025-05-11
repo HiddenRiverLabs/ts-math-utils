@@ -1,0 +1,32 @@
+{
+  "name": "ts-math-utils",
+  "version": "1.0.0",
+  "description": "Math-based objects not included in JS, built in TS.",
+  "keywords": [
+    "intervals"
+  ],
+  "homepage": "https://github.com/HiddenRiverLabs/ts-math-utils#readme",
+  "bugs": {
+    "url": "https://github.com/HiddenRiverLabs/ts-math-utils/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HiddenRiverLabs/ts-math-utils.git"
+  },
+  "license": "MIT",
+  "author": "Colin Elliott",
+  "type": "module",
+  "main": "dist/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.2"
+  }
+}

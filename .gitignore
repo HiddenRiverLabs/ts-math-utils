@@ -1,0 +1,22 @@
+# Node.js dependencies
+node_modules/
+
+# Compiled output
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment variables
+.env
+
+# IDE-specific files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

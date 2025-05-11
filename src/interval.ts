@@ -13,8 +13,8 @@ export type IInterval = { a: IntervalNumber, b: IntervalNumber, name?: string };
  * isClosed represents if the number is included in the interval.
  */
 export class IntervalNumber {
-    number: number;
-    isClosed: boolean;
+    readonly number: number;
+    readonly isClosed: boolean;
 
     constructor(number: number, isClosed: boolean = true) {
         this.number = number;
@@ -49,22 +49,27 @@ export class Interval {
         if (typeof interval === 'string') {
             interval = Interval.toInterval(interval);
         }
-        if (interval.a === interval.b && (!interval.a.isClosed || !interval.b.isClosed)) {
-            throw new Error('Invalid interval. Cannot exclude either minimum and maximum values if they are equal.');
+
+        // Check if both endpoints are excluded and equal
+        if (interval.a.number === interval.b.number && !interval.a.isClosed && !interval.b.isClosed) {
+            throw new Error(
+                `Invalid interval: Cannot exclude both minimum (${interval.a.number}) and maximum (${interval.b.number}) values if they are equal.`
+            );
         }
+
         this.#a = interval.a;
         this.#b = interval.b;
         this.name = interval.name ?? this.name;
     }
+    
+    static intervalRegex = /^(\[|\()(-?\d+|-?Infinity),\s*(-?\d+|-?Infinity)(\]|\))$/;
 
     get a(): IntervalNumber {
         // return a copy of the interval number
         return new IntervalNumber(this.#a.number, this.#a.isClosed);
     }
     set a(value: IntervalNumber | number) {
-        if (typeof value === 'number') {
-            value = new IntervalNumber(value);
-        }
+        value = Interval.toIntervalNumber(value);
         if (this.#b.number === value.number && !this.#b.isClosed && !value.isClosed) {
             throw new Error('Invalid interval. Cannot exclude either minimum and maximum values if they are equal.');
         }
@@ -76,9 +81,7 @@ export class Interval {
         return new IntervalNumber(this.#b.number, this.#b.isClosed);
     }
     set b(value: IntervalNumber | number) {
-        if (typeof value === 'number') {
-            value = new IntervalNumber(value);
-        }
+        value = Interval.toIntervalNumber(value);
         if (this.#a.number === value.number && !this.#a.isClosed && !value.isClosed) {
             throw new Error('Invalid interval. Cannot exclude either minimum and maximum values if they are equal.');
         }
@@ -89,9 +92,7 @@ export class Interval {
         return this.#a.number < this.#b.number ? this.a : this.b;
     }
     set min(value: IntervalNumber | number) {
-        if (typeof value === 'number') {
-            value = new IntervalNumber(value);
-        }
+        value = Interval.toIntervalNumber(value);
         if (this.#a.number === this.min.number) {
             this.a = value;
         } else {
@@ -103,9 +104,7 @@ export class Interval {
         return this.#a.number > this.#b.number ? this.a : this.b;
     }
     set max(value: IntervalNumber | number) {
-        if (typeof value === 'number') {
-            value = new IntervalNumber(value);
-        }
+        value = Interval.toIntervalNumber(value);
         if (this.#a.number === this.max.number) {
             this.a = value;
         } else {
@@ -114,22 +113,63 @@ export class Interval {
     }
 
     /**
+     * Returns true if the interval contains the given number.
+     */
+    containsNumber(x: number): boolean {
+        const isAboveMin = this.min.number < x || (this.min.number === x && this.min.isClosed);
+        const isBelowMax = this.max.number > x || (this.max.number === x && this.max.isClosed);
+        return isAboveMin && isBelowMax;
+    }
+
+    /**
+     * Returns true if the interval contains the given IntervalNumber that represents a minimum value.
+     */
+    containsMin(x: IntervalNumber): boolean {
+        let containsMinValue = false;
+        // there's directionality when the number passed in is open and a minimum
+        if (!x.isClosed) {
+            containsMinValue = this.min.number <= x.number && this.max.number > x.number;
+        } else {
+            containsMinValue = (this.min.number < x.number || (this.min.number === x.number && this.min.isClosed)) &&
+                (this.max.number > x.number || (this.max.number === x.number && this.max.isClosed));
+        }
+        return containsMinValue;
+    }
+
+    /**
+     * Returns true if the interval contains the given IntervalNumber that represents a maximum value.
+     */
+    containsMax(x: IntervalNumber): boolean {
+        let containsMaxValue = false;
+        // there's directionality when the number passed in is open and a maximum
+        if (!x.isClosed) {
+            containsMaxValue = this.min.number < x.number && this.max.number >= x.number;
+        } else {
+            containsMaxValue = (this.min.number < x.number || (this.min.number === x.number && this.min.isClosed)) &&
+                (this.max.number > x.number || (this.max.number === x.number && this.max.isClosed));
+        }
+        return containsMaxValue;
+    }
+
+    /**
      * Returns true if the interval contains the given IntervalNumber or Interval.
      */
     contains(x: IntervalNumber | Interval): boolean {
-        if (x instanceof Interval) {
-            return this.contains(x.a) && this.contains(x.b);
+        if (Interval.isIntervalNumber(x)) {
+            const isAboveMin = this.min.number < x.number || (this.min.number === x.number && this.min.isClosed && x.isClosed);
+            const isBelowMax = this.max.number > x.number || (this.max.number === x.number && this.max.isClosed && x.isClosed);
+
+            return isAboveMin && isBelowMax;
         }
-        const lowerBound: boolean = this.min.number < x.number || (this.min.number === x.number && this.min.isClosed && x.isClosed);
-        const upperBound: boolean = this.max.number > x.number || (this.max.number === x.number && this.max.isClosed && x.isClosed);
-        return lowerBound && upperBound;
+
+        return this.containsMin(x.min) && this.containsMax(x.max);
     }
 
     /**
      * Returns true if the interval overlaps with the given interval.
      */
     overlaps(interval: Interval): boolean {
-        return this.contains(interval.a) || this.contains(interval.b) || interval.contains(this.#a) || interval.contains(this.#b);
+        return this.containsMin(interval.min) || this.containsMax(interval.max);
     }
 
     /**
@@ -154,20 +194,19 @@ export class Interval {
      * @returns A boolean indicating if the string is a valid interval.
      */
     static validIntervalString(interval: string): boolean {
-        try {
-            const parts: string[] = interval.split(',').map((part: string): string => part.trim());
-            if (parts.length !== 2) {
-                return false;
-            }
-            const a: number = Number(parts[0].substring(1));
-            const b: number = Number(parts[1].substring(0, parts[1].length - 1));
-            const startSymbolValid: boolean = parts[0].startsWith('(') || parts[0].startsWith('[');
-            const endSymbolValid: boolean = parts[1].endsWith(')') || parts[1].endsWith(']');
-            return !isNaN(a) && !isNaN(b) && startSymbolValid && endSymbolValid && (a !== b || (a === b && parts[0].startsWith('[') && parts[1].endsWith(']')));
-        } catch (error) {
-            console.error('Error validating interval string:', error);
-            return false;
-        }
+        const match = interval.match(Interval.intervalRegex);
+
+        if (!match) return false;
+
+        const [, startSymbol, a, b, endSymbol] = match;
+        const aNum = Number(a);
+        const bNum = Number(b);
+
+        return (
+            !isNaN(aNum) &&
+            !isNaN(bNum) &&
+            (aNum !== bNum || (aNum === bNum && startSymbol === '[' && endSymbol === ']'))
+        );
     }
 
     /**
@@ -182,11 +221,24 @@ export class Interval {
         if (!Interval.validIntervalString(interval)) {
             throw new Error('Invalid interval string.');
         }
-        const parts: string[] = interval.split(',').map((part: string): string => part.trim());
-        const a: number = Number(parts[0].substring(1));
-        const aIsClosed: boolean = parts[0].startsWith('[');
-        const b: number = Number(parts[1].substring(0, parts[1].length - 1));
-        const bIsClosed: boolean = parts[1].endsWith(']');
-        return new Interval({ a: new IntervalNumber(a, aIsClosed), b: new IntervalNumber(b, bIsClosed) });
+        const [, startSymbol, a, b, endSymbol] = interval.match(Interval.intervalRegex)!;
+
+        const aNum = Number(a);
+        const bNum = Number(b);
+        const aIsClosed = startSymbol === '[';
+        const bIsClosed = endSymbol === ']';
+
+        return new Interval({
+            a: new IntervalNumber(aNum, aIsClosed),
+            b: new IntervalNumber(bNum, bIsClosed),
+        });
+    }
+
+    private static toIntervalNumber(x: IntervalNumber | number, isClosed = true): IntervalNumber {
+        return x instanceof IntervalNumber ? x : new IntervalNumber(x, isClosed);
+    }
+
+    static isIntervalNumber(x: any): x is IntervalNumber {
+        return x instanceof IntervalNumber;
     }
 }
