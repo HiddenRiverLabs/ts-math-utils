@@ -1,6 +1,6 @@
 {
   "name": "ts-math-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Math-based objects not included in JS, built in TS.",
   "keywords": [
     "intervals"

@@ -1,41 +1,93 @@
 # ts-math-utils
 
-Math-based objects not inluded in JS, built in TS.
+Math-based objects not included in JS, built in TS.
 
 ## Intervals
 
-Represents a number interval with the following features
+The `Interval` class represents a mathematical interval with flexible endpoints and inclusivity.
 
-- An Interval can be created from the `IInterval` type passed into Interval constructor
-- Or an Interval can be created via string that represents an interval using mathematical notation '[1, 5)' where '[]' are inclusive and '()' are exclusive
-- `.toString()` returns this mathematical string notation
-- Static functions to validate mathematical string notation and `.toInterval(interval: string): Interval` to statically create an Interval
+**Features:**
+- Create an `Interval` from an `IInterval` object or a string in mathematical notation (e.g., `[1, 5)`, `(2, 10]`).
+- Endpoints can be open or closed (`[]` for inclusive, `()` for exclusive).
+- Supports infinite endpoints (`-Infinity`, `Infinity`).
+- `.toString()` returns the interval in mathematical notation.
+- Static methods:
+  - `Interval.validIntervalString(str)` — Validates a string as interval notation.
+  - `Interval.toInterval(str)` — Parses a string into an `Interval` instance.
+- Methods for containment and overlap:
+  - `.containsNumber(x)` — Checks if a number is within the interval.
+  - `.containsMin(intervalNumber)` — Checks if an `IntervalNumber` is a valid minimum within the interval.
+  - `.containsMax(intervalNumber)` — Checks if an `IntervalNumber` is a valid maximum within the interval.
+  - `.contains(x)` — Checks if an `IntervalNumber` or another `Interval` is fully contained.
+  - `.overlaps(interval)` — Checks if two intervals overlap.
+- Equality and copying:
+  - `.equals(otherInterval)` — Checks if two intervals are equal.
+  - `.clone()` — Returns a copy of the interval.
+- Properties:
+  - `.min` and `.max` — Get or set the minimum and maximum endpoints as `IntervalNumber`.
+  - `.a` and `.b` — Get or set the original endpoints.
+  - `.name` — Optional name for the interval.
+
+---
 
 ## Interval Sets
 
-Tracks a list of `Interval`s with the following additional features
+The `IntervalSet` class manages a collection of `Interval` objects with advanced set operations.
 
-- `.sort()` the list of `Interval`s based on the min value
-- `addInterval(interval: IInterval | string)` that adds an interval by object or string representation
-- `removeInterval(interval: IInterval | string)` that removes an interval by object or string representation
-- `removeIntervalByName(name: string)` the removes an interval by the provided name
-- `clear()` that clears all the intervals to an empty array
-- `mergeIntervals()` that looks at the list of Intervals and combined Intervals that overlap
-- `getIntervalGaps(interval?: IInterval | string)` will return a list of Intervals that represent the gaps between the existing Intervals, and when provided an Interval will return an array of Intervals that represent the intersection between the  provided Interval and existing Intervals (useful when providing a new Interval and getting the Intervals that don't already exist, such as efficiently requesting Intervals not yet searched)
-- `createIntervalGap(interval?: IInterval | string)` will create a gap in the list of intervals
-- `chainIntervals()` will link intervals together so that there are no gaps and turn off `mergeAddedInterval` to prevent future merging all intervals into 1 big interval. This is useful to fix gaps in your intervals.
-- `getIntervalsContaining(interval: IntervalNumber | number)` returns an array of Intervals that contain the provided IntervalNumber or number
+**Features:**
+- Add, remove, and clear intervals:
+  - `.addInterval(interval)` — Add an interval (object or string).
+  - `.removeInterval(interval)` — Remove an interval (object or string).
+  - `.removeIntervalByName(name)` — Remove an interval by its name.
+  - `.clear()` — Remove all intervals.
+- Merging and chaining:
+  - `mergeAddedInterval` (option) — When `true`, automatically merges overlapping or adjacent intervals on add.
+  - `.chainIntervals()` — Adjusts intervals to remove gaps and disables future merging.
+- Sorting:
+  - `.sort()` (static) — Sorts intervals by minimum value and inclusivity.
+- Gap and containment queries:
+  - `.getIntervalGaps([interval])` — Returns intervals representing gaps between existing intervals, or gaps within a provided interval.
+  - `.createIntervalGap(interval)` — Creates a gap in the set by splitting or trimming intervals.
+  - `.getIntervalsContaining(x)` — Returns intervals containing a specific number.
+- String representation:
+  - `.toString()` — Returns a comma-separated string of all intervals in mathematical notation.
+- Accessors:
+  - `.intervals` — Returns a copy of the current intervals array.
+  - `.mergeAddedInterval` — Get or set the merging behavior for added intervals.
+
+---
+
+## Example Usage
+
+```typescript
+import { Interval, IntervalNumber, IntervalSet } from 'ts-math-utils';
+
+// Create intervals
+const i1 = new Interval({ a: new IntervalNumber(1), b: new IntervalNumber(5, false) }); // [1, 5)
+const i2 = Interval.toInterval('[10, 15)'); // [10, 15)
+
+// Work with interval sets
+const set = new IntervalSet();
+set.addInterval(i1);
+set.addInterval(i2);
+
+console.log(set.toString()); // "[1, 5), [10, 15)"
+
+// Find gaps
+const gaps = set.getIntervalGaps();
+console.log(gaps.map(gap => gap.toString())); // e.g., [5, 10)
+
+// Chain intervals
+set.chainIntervals()
+console.log(set.toString()); // "[1, 5), [5, 15)"
+```
+
+---
 
 ## Testing
-
-Install http-server globally:
-
-```bash
-npm install -g http-server
-```
 
 Run the following command in the root directory:
 
 ```bash
-http-server
+npm test
 ```
