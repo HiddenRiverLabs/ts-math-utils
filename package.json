@@ -1,6 +1,6 @@
 {
   "name": "ts-math-utils",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Math-based objects not included in JS, built in TS.",
   "keywords": [
     "intervals"
@@ -22,7 +22,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

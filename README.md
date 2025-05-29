@@ -1,5 +1,8 @@
 # ts-math-utils
 
+![Jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)
+
 Math-based objects not included in JS, built in TS.
 
 ## Intervals
@@ -42,7 +45,7 @@ The `IntervalSet` class manages a collection of `Interval` objects with advanced
   - `.clear()` — Remove all intervals.
 - Merging and chaining:
   - `mergeAddedInterval` (option) — When `true`, automatically merges overlapping or adjacent intervals on add.
-  - `.chainIntervals()` — Adjusts intervals to remove gaps and disables future merging.
+  - `.chainIntervals()` — Adjusts intervals to remove gaps and disables `mergeAddedInterval` so they don't get merged.
 - Sorting:
   - `.sort()` (static) — Sorts intervals by minimum value and inclusivity.
 - Gap and containment queries:
