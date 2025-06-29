@@ -1,6 +1,6 @@
 {
   "name": "ts-math-utils",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Math-based objects not included in JS, built in TS.",
   "keywords": [
     "intervals", "range", "set", "math", "utils", "typescript", "ts", "number", "bigint", "Infinity"

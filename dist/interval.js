@@ -14,7 +14,7 @@ export class IntervalNumber {
      * Returns true if the given IntervalNumber is equal to this IntervalNumber.
      */
     equals(x) {
-        if (typeof x === 'number') {
+        if (typeof x === 'number' || typeof x === 'bigint') {
             x = new IntervalNumber(x);
         }
         return this.number === x.number && this.isClosed === x.isClosed;
@@ -29,50 +29,48 @@ export class IntervalNumber {
  * console.log(interval.toString()); // (1, 10]
  */
 export class Interval {
-    #a;
-    #b;
-    name = 'Not Specified';
+    _a;
+    _b;
+    name;
     constructor(interval) {
         if (typeof interval === 'string') {
             interval = Interval.toInterval(interval);
         }
-        // Check if both endpoints are excluded and equal
-        if (interval.a.number === interval.b.number && !interval.a.isClosed && !interval.b.isClosed) {
-            throw new Error(`Invalid interval: Cannot exclude both minimum (${interval.a.number}) and maximum (${interval.b.number}) values if they are equal.`);
+        if (!Interval.validInterval(interval)) {
+            throw new Error(`Invalid interval: Cannot exclude either minimum (${interval.a.number}) or maximum (${interval.b.number}) values if they are equal.`);
         }
-        this.#a = interval.a;
-        this.#b = interval.b;
-        this.name = interval.name ?? this.name;
+        this._a = interval.a;
+        this._b = interval.b;
+        this.name = interval.name;
     }
-    static intervalRegex = /^(\[|\()(-?\d+|-?Infinity),\s*(-?\d+|-?Infinity)(\]|\))$/;
     get a() {
         // return a copy of the interval number
-        return new IntervalNumber(this.#a.number, this.#a.isClosed);
+        return new IntervalNumber(this._a.number, this._a.isClosed);
     }
     set a(value) {
         value = Interval.toIntervalNumber(value);
-        if (this.#b.number === value.number && !this.#b.isClosed && !value.isClosed) {
+        if (this._b.number === value.number && !this._b.isClosed && !value.isClosed) {
             throw new Error('Invalid interval. Cannot exclude either minimum and maximum values if they are equal.');
         }
-        this.#a = value;
+        this._a = value;
     }
     get b() {
         // return a copy of the interval number
-        return new IntervalNumber(this.#b.number, this.#b.isClosed);
+        return new IntervalNumber(this._b.number, this._b.isClosed);
     }
     set b(value) {
         value = Interval.toIntervalNumber(value);
-        if (this.#a.number === value.number && !this.#a.isClosed && !value.isClosed) {
+        if (this._a.number === value.number && !this._a.isClosed && !value.isClosed) {
             throw new Error('Invalid interval. Cannot exclude either minimum and maximum values if they are equal.');
         }
-        this.#b = value;
+        this._b = value;
     }
     get min() {
-        return this.#a.number < this.#b.number ? this.a : this.b;
+        return this._a.number < this._b.number ? this._a : this._b;
     }
     set min(value) {
         value = Interval.toIntervalNumber(value);
-        if (this.#a.number === this.min.number) {
+        if (this._a.number === this.min.number) {
             this.a = value;
         }
         else {
@@ -80,11 +78,11 @@ export class Interval {
         }
     }
     get max() {
-        return this.#a.number > this.#b.number ? this.a : this.b;
+        return this._a.number > this._b.number ? this._a : this._b;
     }
     set max(value) {
         value = Interval.toIntervalNumber(value);
-        if (this.#a.number === this.max.number) {
+        if (this._a.number === this.max.number) {
             this.a = value;
         }
         else {
@@ -153,9 +151,31 @@ export class Interval {
      * console.log(interval.toString()); // (1, 10]
      */
     toString() {
-        const aIsClosedChar = this.#a.isClosed ? '[' : '(';
-        const bIsClosedChar = this.#b.isClosed ? ']' : ')';
-        return `${aIsClosedChar}${this.#a.number}, ${this.#b.number}${bIsClosedChar}`;
+        const aIsClosedChar = this._a.isClosed ? '[' : '(';
+        const bIsClosedChar = this._b.isClosed ? ']' : ')';
+        return `${aIsClosedChar}${formatNumericValue(this._a.number)}, ${formatNumericValue(this._b.number)}${bIsClosedChar}`;
+    }
+    static parseNumericString(str) {
+        const trimmed = str.trim();
+        // Handle BigInt notation (ends with 'n')
+        if (trimmed.endsWith('n')) {
+            return BigInt(trimmed.slice(0, -1));
+        }
+        // Use Number() for everything else (handles hex, octal, binary automatically)
+        const num = Number(trimmed);
+        if (isNaN(num)) {
+            throw new Error(`Invalid numeric string: ${str}`);
+        }
+        return num;
+    }
+    /**
+     * Returns true if the given interval is valid.
+     */
+    static validInterval(interval) {
+        const aIsValid = typeof interval.a.number === 'number' || typeof interval.a.number === 'bigint';
+        const bIsValid = typeof interval.b.number === 'number' || typeof interval.b.number === 'bigint';
+        return aIsValid && bIsValid &&
+            (interval.a.number !== interval.b.number || (interval.a.isClosed && interval.b.isClosed));
     }
     /**
      * Returns true if the given string is a valid interval.
@@ -167,15 +187,13 @@ export class Interval {
      * @returns A boolean indicating if the string is a valid interval.
      */
     static validIntervalString(interval) {
-        const match = interval.match(Interval.intervalRegex);
-        if (!match)
+        try {
+            const intervalObj = Interval.toInterval(interval);
+            return Interval.validInterval(intervalObj);
+        }
+        catch {
             return false;
-        const [, startSymbol, a, b, endSymbol] = match;
-        const aNum = Number(a);
-        const bNum = Number(b);
-        return (!isNaN(aNum) &&
-            !isNaN(bNum) &&
-            (aNum !== bNum || (aNum === bNum && startSymbol === '[' && endSymbol === ']')));
+        }
     }
     /**
      * Takes a string representation of an interval and returns an Interval object.
@@ -186,23 +204,34 @@ export class Interval {
      * console.log(interval.toString()); // (1, 10]
      */
     static toInterval(interval) {
-        if (!Interval.validIntervalString(interval)) {
-            throw new Error('Invalid interval string.');
+        const intervalTrimmed = interval.trim();
+        const startSymbol = intervalTrimmed[0];
+        const endSymbol = intervalTrimmed[intervalTrimmed.length - 1];
+        if (startSymbol !== '(' && startSymbol !== '[' || endSymbol !== ')' && endSymbol !== ']') {
+            throw new Error(`Invalid interval string: ${interval}`);
         }
-        const [, startSymbol, a, b, endSymbol] = interval.match(Interval.intervalRegex);
-        const aNum = Number(a);
-        const bNum = Number(b);
+        const a = intervalTrimmed.slice(1, intervalTrimmed.indexOf(',')).trim();
+        const b = intervalTrimmed.slice(intervalTrimmed.indexOf(',') + 1, intervalTrimmed.length - 1).trim();
+        const aNum = Interval.parseNumericString(a);
+        const bNum = Interval.parseNumericString(b);
         const aIsClosed = startSymbol === '[';
         const bIsClosed = endSymbol === ']';
-        return new Interval({
+        const iInterval = {
             a: new IntervalNumber(aNum, aIsClosed),
-            b: new IntervalNumber(bNum, bIsClosed),
-        });
+            b: new IntervalNumber(bNum, bIsClosed)
+        };
+        if (!Interval.validInterval(iInterval)) {
+            throw new Error(`Invalid interval string: ${interval}`);
+        }
+        return iInterval;
     }
     static toIntervalNumber(x, isClosed = true) {
-        return x instanceof IntervalNumber ? x : new IntervalNumber(x, isClosed);
+        return Interval.isIntervalNumber(x) ? x : new IntervalNumber(x, isClosed);
     }
     static isIntervalNumber(x) {
         return x instanceof IntervalNumber;
     }
+}
+export function formatNumericValue(v) {
+    return typeof v === 'bigint' ? `${v}n` : `${v}`;
 }
