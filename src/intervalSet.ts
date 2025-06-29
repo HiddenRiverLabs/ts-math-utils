@@ -1,4 +1,4 @@
-import { IInterval, Interval, IntervalNumber } from './interval';
+import { IInterval, Interval, IntervalNumber, NumericValue } from './interval';
 
 /**
  * Represents interval set options.
@@ -145,11 +145,11 @@ export class IntervalSet {
             ) {
                 // Merge intervals
                 current.min = new IntervalNumber(
-                    Math.min(current.min.number, next.min.number),
+                    safeMin(current.min.number, next.min.number),
                     current.min.isClosed || next.min.isClosed
                 );
                 current.max = new IntervalNumber(
-                    Math.max(current.max.number, next.max.number),
+                    safeMax(current.max.number, next.max.number),
                     current.max.isClosed || next.max.isClosed
                 );
                 intervals.splice(i + 1, 1); // Remove the merged interval
@@ -308,7 +308,7 @@ export class IntervalSet {
                 if (current.containsMax(next.max) || next.max.number < current.max.number) {
                     intervalsCopy.splice(i + 1, 1); // Remove the next interval
                     // Adjust the current interval's max if necessary
-                    current.max = new IntervalNumber(Math.max(current.max.number, next.max.number), current.max.isClosed || next.max.isClosed);
+                    current.max = new IntervalNumber(safeMax(current.max.number, next.max.number), current.max.isClosed || next.max.isClosed);
                     // update the current interval in the original intervals array
                     const localIntervalToUpdate = this._intervals.find((r) => r.toString() === current.toString());
                     if (localIntervalToUpdate) {
@@ -347,4 +347,12 @@ export class IntervalSet {
     toString(): string {
         return this._intervals.map(interval => interval.toString()).join(', ');
     }
+}
+
+export function safeMin(a: NumericValue, b: NumericValue): NumericValue {
+    return a < b ? a : b;
+}
+
+export function safeMax(a: NumericValue, b: NumericValue): NumericValue {
+    return a > b ? a : b;
 }

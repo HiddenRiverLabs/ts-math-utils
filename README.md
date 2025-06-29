@@ -7,7 +7,7 @@ Math-based objects not included in JS, built in TS.
 
 ## Intervals
 
-The `Interval` class represents a mathematical interval with flexible endpoints and inclusivity.
+The `Interval` class represents a mathematical interval with flexible endpoints and inclusivity. Supports number and bigint.
 
 **Features:**
 - Create an `Interval` from an `IInterval` object or a string in mathematical notation (e.g., `[1, 5)`, `(2, 10]`).
@@ -15,6 +15,7 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
 - Supports infinite endpoints (`-Infinity`, `Infinity`).
 - `.toString()` returns the interval in mathematical notation.
 - Static methods:
+  - `Interval.validInterval(x: IInterval)` — Validates an IInterval type
   - `Interval.validIntervalString(str)` — Validates a string as interval notation.
   - `Interval.toInterval(str)` — Parses a string into an `Interval` instance.
 - Methods for containment and overlap:
@@ -24,18 +25,15 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
   - `.contains(x)` — Checks if an `IntervalNumber` or another `Interval` is fully contained.
   - `.overlaps(interval)` — Checks if two intervals overlap.
 - Equality and copying:
-  - `.equals(otherInterval)` — Checks if two intervals are equal.
-  - `.clone()` — Returns a copy of the interval.
+  - `.equals(other: IntervalNumber)` — Checks if two `IntervalNumber`s are equal.
 - Properties:
   - `.min` and `.max` — Get or set the minimum and maximum endpoints as `IntervalNumber`.
   - `.a` and `.b` — Get or set the original endpoints.
   - `.name` — Optional name for the interval.
 
----
-
 ## Interval Sets
 
-The `IntervalSet` class manages a collection of `Interval` objects with advanced set operations.
+The `IntervalSet` class manages a collection of `Interval` objects with advanced set operations. Supports number and bigint.
 
 **Features:**
 - Add, remove, and clear intervals:
@@ -57,8 +55,6 @@ The `IntervalSet` class manages a collection of `Interval` objects with advanced
 - Accessors:
   - `.intervals` — Returns a copy of the current intervals array.
   - `.mergeAddedInterval` — Get or set the merging behavior for added intervals.
-
----
 
 ## Example Usage
 
@@ -85,7 +81,34 @@ set.chainIntervals()
 console.log(set.toString()); // "[1, 5), [5, 15)"
 ```
 
----
+## Range
+
+The `range()` function utilizes the `IInterval` to be used in `for..of` loops. Supports number and bigint.
+
+**Features:**
+- Use an `IInterval` or string representation of an `Interval` to iterate over the range.
+- Default step is `1`.
+- Loop forever by passing `Infinity`
+- If either start or end value is of type bigint, both numbers are evaluated as bigint and each step yielded as bigint
+
+## Example Usage
+
+```typescript
+import { NumericValue } from 'ts-math-utils';
+
+const result: NumericValue[] = [];
+for (const n of range('[0n, Infinity)')) {
+    result.push(n);
+    if (n >= 5n) break; // Limit to 5
+}
+console.log(result); // [0n, 1n, 2n, 3n, 4n, 5n]
+
+const result2: NumericValue[] = [];
+for (const n of range('[0, 0.5]', 0.1)) {
+    result2.push(n);
+}
+console.log(result2); // [0, 0.1, 0.2, 0.3, 0.4, 0.5]
+```
 
 ## Testing
 
