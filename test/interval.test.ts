@@ -11,8 +11,15 @@ describe('Interval', () => {
   });
 
   it('should create a valid interval from a string', () => {
-    const interval = Interval.toInterval('(1, 5]');
+    const iInterval = Interval.toInterval('(1, 5]');
+    const interval = new Interval(iInterval);
     expect(interval.toString()).toBe('(1, 5]');
+  });
+
+  it('should create a valid interval of bigint from a string', () => {
+    const iInterval = Interval.toInterval('(1n, 5n]');
+    const interval = new Interval(iInterval);
+    expect(interval.toString()).toBe('(1n, 5n]');
   });
 
   it('should check if an IntervalNumber is contained within the interval', () => {
@@ -172,7 +179,7 @@ describe('Interval', () => {
         b: new IntervalNumber(5, false),
       });
     }).toThrow(
-      'Invalid interval: Cannot exclude both minimum (5) and maximum (5) values if they are equal.'
+      'Invalid interval: Cannot exclude either minimum (5) or maximum (5) values if they are equal.'
     );
   });
 
@@ -203,7 +210,7 @@ describe('Interval', () => {
   it('should throw an error for an invalid interval string in toInterval', () => {
     expect(() => {
       Interval.toInterval('1, 5)');
-    }).toThrow('Invalid interval string.');
+    }).toThrow('Invalid interval string: 1, 5)');
   });
 
   it('should correctly update the min and max values', () => {
@@ -249,19 +256,20 @@ describe('Interval', () => {
     expect(interval.contains(new IntervalNumber(Infinity))).toBe(false);
   });
 
-  it('should handle intervals with equal endpoints where one is closed and the other is open', () => {
-    const interval1 = new Interval({
-      a: new IntervalNumber(5, true),
-      b: new IntervalNumber(5, false),
-    });
+  it('should fail for intervals with equal endpoints where one is closed and the other is open', () => {
+    expect(() => {
+      const interval1 = new Interval({
+        a: new IntervalNumber(5, true),
+        b: new IntervalNumber(5, false),
+      });
+    }).toThrow('Invalid interval: Cannot exclude either minimum (5) or maximum (5) values if they are equal.');
 
-    const interval2 = new Interval({
-      a: new IntervalNumber(5, false),
-      b: new IntervalNumber(5, true),
-    });
-
-    expect(interval1.toString()).toBe('[5, 5)');
-    expect(interval2.toString()).toBe('(5, 5]');
+    expect(() => {
+      const interval2 = new Interval({
+        a: new IntervalNumber(5, false),
+        b: new IntervalNumber(5, true),
+      });
+    }).toThrow('Invalid interval: Cannot exclude either minimum (5) or maximum (5) values if they are equal.');
   });
 
   it('should correctly identify overlapping intervals with shared boundaries', () => {
@@ -382,7 +390,7 @@ describe('Interval', () => {
     expect(() => {
       new Interval('(5, 5)');
     }).toThrow(
-      'Invalid interval string.'
+      'Invalid interval string: (5, 5)'
     );
   });
 
@@ -390,7 +398,7 @@ describe('Interval', () => {
     expect(() => {
       new Interval('(-3, -3)');
     }).toThrow(
-      'Invalid interval string.'
+      'Invalid interval string: (-3, -3)'
     );
   });
 
@@ -398,7 +406,7 @@ describe('Interval', () => {
     expect(() => {
       new Interval('(-Infinity, -Infinity)');
     }).toThrow(
-      'Invalid interval string.'
+      'Invalid interval string: (-Infinity, -Infinity)'
     );
   });
 
