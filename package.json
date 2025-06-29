@@ -3,7 +3,7 @@
   "version": "2.1.0",
   "description": "Math-based objects not included in JS, built in TS.",
   "keywords": [
-    "intervals"
+    "intervals", "range", "set", "math", "utils", "typescript", "ts", "number", "bigint", "Infinity"
   ],
   "homepage": "https://github.com/HiddenRiverLabs/ts-math-utils#readme",
   "bugs": {
