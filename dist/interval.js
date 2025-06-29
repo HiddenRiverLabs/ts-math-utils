@@ -232,6 +232,12 @@ export class Interval {
         return x instanceof IntervalNumber;
     }
 }
+/**
+ * Formats a numeric value as a string, appending 'n' for bigints.
+ * @param v The numeric value to format, can be a number or bigint.
+ * @description Formats a numeric value as a string, appending 'n' for bigints.
+ * @returns A string representation of the numeric value.
+ */
 export function formatNumericValue(v) {
     return typeof v === 'bigint' ? `${v}n` : `${v}`;
 }

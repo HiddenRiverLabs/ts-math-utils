@@ -1,5 +1,9 @@
-// Simple numeric type - just number and bigint
+/**
+ * Represents a numeric value that can be either a number or a bigint.
+ * This is used to allow for both types in intervals and ranges.
+ */
 export type NumericValue = number | bigint;
+
 /**
  * Represents an interval number
  * isClosed is optional and defaults to true.
@@ -271,6 +275,12 @@ export class Interval implements IInterval {
     }
 }
 
+/**
+ * Formats a numeric value as a string, appending 'n' for bigints.
+ * @param v The numeric value to format, can be a number or bigint.
+ * @description Formats a numeric value as a string, appending 'n' for bigints.
+ * @returns A string representation of the numeric value.
+ */
 export function formatNumericValue(v: NumericValue): string {
     return typeof v === 'bigint' ? `${v}n` : `${v}`;
 }
