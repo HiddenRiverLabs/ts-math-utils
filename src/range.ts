@@ -11,6 +11,12 @@ function getDecimalPlaces(x: number): number {
     return s.split('.')[1].length;
 }
 
+/**
+ * Generates an iterable sequence of numbers or bigints within a specified interval, stepping by a given value.
+ * @param interval The interval to iterate over, can be an `IInterval` object or a string like "[1, 10]".
+ * @param step The step size to increment by, defaults to 1. Can be a number or bigint.
+ * @returns An iterable generator that yields numbers or bigints within the specified interval.
+ */
 export function range(interval: IInterval | string, step: NumericValue = 1): Iterable<NumericValue> {
     return (function* () {
         try {

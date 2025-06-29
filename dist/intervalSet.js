@@ -319,9 +319,21 @@ export class IntervalSet {
         return this._intervals.map(interval => interval.toString()).join(', ');
     }
 }
+/**
+ * Returns the minimum of two numeric values, handling both numbers and bigints.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @returns The smaller of the two values.
+ */
 export function safeMin(a, b) {
     return a < b ? a : b;
 }
+/**
+ * Returns the maximum of two numeric values, handling both numbers and bigints.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @returns The larger of the two values.
+ */
 export function safeMax(a, b) {
     return a > b ? a : b;
 }
