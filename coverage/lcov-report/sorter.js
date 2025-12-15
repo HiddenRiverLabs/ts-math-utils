@@ -75,6 +75,16 @@ var addSorting = (function() {
     }
     // attaches a data attribute to every tr element with an object
     // of data values keyed by column name
+    // Escape HTML markup in a string
+    function escapeHTML(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     function loadRowData(tableRow) {
         var tableCols = tableRow.querySelectorAll('td'),
             colNode,
@@ -88,6 +98,8 @@ var addSorting = (function() {
             val = colNode.getAttribute('data-value');
             if (col.type === 'number') {
                 val = Number(val);
+            } else if (typeof val === 'string' && val !== null) {
+                val = escapeHTML(val);
             }
             data[col.key] = val;
         }
