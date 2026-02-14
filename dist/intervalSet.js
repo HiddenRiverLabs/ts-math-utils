@@ -1,29 +1,59 @@
 import { Interval, IntervalNumber } from "./interval";
 /**
- * Represents interval set options.
- * mergeAddedInterval is optional and defaults to true.
- * mergeAddedInterval, when true, is used to merge overlapping Intervals when adding a new interval.
+ * Configuration options for IntervalSet behavior.
+ *
+ * @property mergeAddedInterval - When true, automatically merges overlapping or adjacent intervals when adding new intervals (default: true)
  */
 export class IntervalSetOptions {
     mergeAddedInterval = true;
 }
 /**
- * Represents a set of intervals.
- * intervals is optional and defaults to an empty array.
- * mergeAddedInterval is optional and defaults to true.
- * mergeAddedInterval, when true, is used to merge overlapping Intervals when adding a new interval.
+ * A collection of intervals with optional automatic merging of overlapping/adjacent intervals.
+ *
+ * IntervalSet can operate in two modes:
+ * - Merged mode (default): Automatically combines overlapping or adjacent intervals when adding
+ * - Unmerged mode: Maintains intervals as added, allowing overlaps
+ *
  * @example
- * const intervalSet: IntervalSet = new IntervalSet({ intervals: [new Interval({ a: new IntervalNumber(1), b: new IntervalNumber(10, false) }), new Interval({ a: new IntervalNumber(5), b: new IntervalNumber(15, false) })], options: { mergeAddedInterval: true });
+ * // Create with automatic merging (default)
+ * const set1 = new IntervalSet({
+ *   intervals: ['[1, 5]', '[3, 10]']
+ * });
+ * console.log(set1.toString()); // "[1, 10]" (automatically merged)
+ *
+ * @example
+ * // Create without merging
+ * const set2 = new IntervalSet({
+ *   intervals: ['[1, 5]', '[3, 10]'],
+ *   options: { mergeAddedInterval: false }
+ * });
+ * console.log(set2.toString()); // "[1, 5], [3, 10]" (kept separate)
  */
 export class IntervalSet {
     _intervals = [];
     _mergeAddedInterval = true;
     /**
-     * Creates a new IntervalSet object.
-     * intervalSet is optional and defaults to undefined.
-     * @param intervalSet - The interval set object.
+     * Creates a new IntervalSet.
+     *
+     * @param intervalSet - Optional configuration object
+     * @param intervalSet.intervals - Array of intervals (as IInterval objects or strings)
+     * @param intervalSet.options - Configuration options for the set
      * @example
-     * const intervalSet: IntervalSet = new IntervalSet({ intervals: [new Interval({ a: new IntervalNumber(1), b: new IntervalNumber(10, false) }), new Interval({ a: new IntervalNumber(5), b: new IntervalNumber(15, false) })], options: { mergeAddedInterval: true });
+     * // Empty set
+     * const emptySet = new IntervalSet();
+     *
+     * @example
+     * // From string notation
+     * const set1 = new IntervalSet({ intervals: ['[1, 10]', '[20, 30]'] });
+     *
+     * @example
+     * // From objects with merging disabled
+     * const set2 = new IntervalSet({
+     *   intervals: [
+     *     { a: new IntervalNumber(1), b: new IntervalNumber(10) }
+     *   ],
+     *   options: { mergeAddedInterval: false }
+     * });
      */
     constructor(intervalSet) {
         if (intervalSet?.intervals) {
@@ -35,15 +65,27 @@ export class IntervalSet {
         this.mergeAddedInterval = intervalSet?.options?.mergeAddedInterval ?? this._mergeAddedInterval;
     }
     /**
-     * Returns a copy of the intervals in the interval set.
+     * Gets a defensive copy of all intervals in the set.
+     *
+     * Returns copies to prevent external modification of internal state.
+     *
+     * @returns Array of Interval objects (copies, not references)
      */
     get intervals() {
         return this._intervals.map((r) => new Interval(r));
     }
     /**
-     * Gets or sets the mergeAddedInterval option.
-     * mergeAddedInterval, when true, is used to merge overlapping Intervals when adding a new interval.
-     * Setting this option to true will merge the intervals in the interval set.
+     * Controls whether intervals are automatically merged when added.
+     *
+     * When set to true, immediately merges all existing intervals in the set.
+     * When set to false, disables automatic merging for future additions.
+     *
+     * @example
+     * const set = new IntervalSet({ intervals: ['[1, 5]', '[7, 10]'] });
+     * set.addInterval('[4, 8]');  // Results in [1, 10] (auto-merged)
+     *
+     * set.mergeAddedInterval = false;  // Merges existing, then disables
+     * set.addInterval('[15, 20]');     // Added separately
      */
     get mergeAddedInterval() {
         return this._mergeAddedInterval;
@@ -55,7 +97,21 @@ export class IntervalSet {
         }
     }
     /**
-     * Sorts the intervals in the interval set, ascending based on the minimum value of each interval and isClosed is before !isClosed.
+     * Sorts intervals in-place by their minimum values.
+     *
+     * Sort order:
+     * 1. By min.number (ascending)
+     * 2. If min.number is equal, closed endpoints [  come before open endpoints (
+     *
+     * @param intervals - Array of intervals to sort (modified in-place)
+     * @example
+     * const intervals = [
+     *   new Interval('[5, 10]'),
+     *   new Interval('(1, 3]'),
+     *   new Interval('[1, 2]')
+     * ];
+     * IntervalSet.sort(intervals);
+     * // Result order: [1, 2], (1, 3], [5, 10]
      */
     static sort(intervals) {
         intervals.sort((a, b) => {
@@ -79,12 +135,16 @@ export class IntervalSet {
         });
     }
     /**
-     * Adds an interval to the interval set.
-     * @param interval - The interval object or string representation.
+     * Adds an interval to the set.
+     *
+     * If mergeAddedInterval is true, automatically merges with overlapping or adjacent intervals.
+     * If false, adds the interval as-is (may create overlaps).
+     *
+     * @param interval - Interval to add (IInterval object or string notation)
      * @example
-     * intervalSet.addInterval(new Interval({ a: new IntervalNumber(1), b: new IntervalNumber(10, false) }));
-     * @example
-     * intervalSet.addInterval('[1, 10)');
+     * const set = new IntervalSet();
+     * set.addInterval('[1, 10]');
+     * set.addInterval(new Interval('[5, 15]'));  // Merges to [1, 15]
      */
     addInterval(interval) {
         const intervalObject = new Interval(interval);
@@ -94,34 +154,55 @@ export class IntervalSet {
         }
     }
     /**
-     * Removes an interval from the interval set.
-     * @param interval - The interval object or string representation.
+     * Removes an interval from the set by exact match.
+     *
+     * Compares intervals using their string representation. Only removes exact matches.
+     * Does not subtract or create gaps - use createIntervalGap() for that.
+     *
+     * @param interval - Interval to remove (IInterval object or string notation)
      * @example
-     * intervalSet.removeInterval(new Interval({ a: new IntervalNumber(1), b: new IntervalNumber(10, false) }));
-     * @example
-     * intervalSet.removeInterval('[1, 10)');
+     * const set = new IntervalSet({ intervals: ['[1, 10]', '[20, 30]'] });
+     * set.removeInterval('[1, 10]');
+     * console.log(set.toString()); // "[20, 30]"
      */
     removeInterval(interval) {
         const intervalObject = new Interval(interval);
         this._intervals = this._intervals.filter((r) => r.toString() !== intervalObject.toString());
     }
     /**
-     * Remove interval by name.
-     * @param name - The name of the interval.
+     * Removes all intervals with the specified name.
+     *
+     * @param name - Name of the interval(s) to remove
      * @example
-     * intervalSet.removeIntervalByName('Interval 1');
+     * const interval = new Interval({
+     *   a: new IntervalNumber(1),
+     *   b: new IntervalNumber(10),
+     *   name: 'myInterval'
+     * });
+     * set.addInterval(interval);
+     * set.removeIntervalByName('myInterval');
      */
     removeIntervalByName(name) {
         this._intervals = this._intervals.filter((r) => r.name !== name);
     }
     /**
-     * Removes all intervals from the interval set.
+     * Removes all intervals from the set.
+     *
+     * @example
+     * set.clear();
+     * console.log(set.intervals.length); // 0
      */
     clear() {
         this._intervals = [];
     }
     /**
-     * Merge overlapping intervals in the interval set.
+     * Merges overlapping and adjacent (complementary) intervals in-place.
+     *
+     * Combines intervals that overlap or touch with opposite closure.
+     * Modifies the input array by merging and removing intervals.
+     *
+     * @param intervals - Array of intervals to merge (modified in-place)
+     * @private
      */
     static mergeIntervals(intervals) {
         IntervalSet.sort(intervals);
@@ -129,12 +210,12 @@ export class IntervalSet {
         while (i < intervals.length - 1) {
             const current = intervals[i];
             const next = intervals[i + 1];
-            // Check if intervals overlap or are adjacent
-            if (current.overlaps(next) ||
-                (current.max.number === next.min.number && (current.max.isClosed || next.min.isClosed))) {
-                // Merge intervals
-                current.min = new IntervalNumber(safeMin(current.min.number, next.min.number), current.min.isClosed || next.min.isClosed);
-                current.max = new IntervalNumber(safeMax(current.max.number, next.max.number), current.max.isClosed || next.max.isClosed);
+            // Check if intervals overlap or complement each other (touch with opposite closure)
+            if (current.overlaps(next) || current.compliments(next)) {
+                // Merge intervals using Interval.mergeIntervals()
+                const merged = Interval.mergeIntervals(current, next);
+                current.min = merged.min;
+                current.max = merged.max;
                 intervals.splice(i + 1, 1); // Remove the merged interval
             }
             else {
@@ -143,11 +224,25 @@ export class IntervalSet {
         }
     }
     /**
-     * Returns the gaps between the intervals in the passed in interval..
-     * If interval is provided, the gaps are calculated based on the given interval.
-     * If interval is not provided, the gaps are calculated based on the intervals in the interval set.
-     * @param interval - The interval object or string representation.
-     * @returns An array of Interval objects representing the gaps.
+     * Finds gaps in coverage, either within a target interval or between intervals in the set.
+     *
+     * Two behaviors:
+     * - With interval parameter: Returns uncovered portions of the target interval
+     * - Without parameter: Returns gaps between consecutive intervals in the set
+     *
+     * @param interval - Optional target interval to check for gaps
+     * @returns Array of Interval objects representing the gaps
+     * @example
+     * // Find gaps between intervals in the set
+     * const set = new IntervalSet({ intervals: ['[1, 5]', '[10, 15]'] });
+     * const gaps = set.getIntervalGaps();
+     * console.log(gaps[0].toString()); // "(5, 10)"
+     *
+     * @example
+     * // Find gaps within a target interval
+     * const set = new IntervalSet({ intervals: ['[2, 4]', '[7, 9]'] });
+     * const gaps = set.getIntervalGaps('[0, 10]');
+     * // Returns: [0, 2), (4, 7), (9, 10]
      */
     getIntervalGaps(interval) {
         const intervalObject = interval ? new Interval(interval) : undefined;
@@ -160,6 +255,14 @@ export class IntervalSet {
             ? this._getGapsForInterval(intervalObject, intervalsCopy)
             : this._getGapsForSet(intervalsCopy);
     }
+    /**
+     * Computes gaps within a target interval based on existing intervals.
+     *
+     * @param interval - Target interval to check for coverage
+     * @param intervals - Existing intervals in the set
+     * @returns Array of gap intervals
+     * @private
+     */
     _getGapsForInterval(interval, intervals) {
         const gaps = [];
         const isContained = intervals.some((r) => r.contains(interval));
@@ -192,6 +295,13 @@ export class IntervalSet {
         }
         return gaps;
     }
+    /**
+     * Computes gaps between consecutive intervals in a sorted set.
+     *
+     * @param intervals - Sorted array of intervals
+     * @returns Array of gap intervals between consecutive intervals
+     * @private
+     */
     _getGapsForSet(intervals) {
         const gaps = [];
         if (intervals.length < 2) {
@@ -215,10 +325,24 @@ export class IntervalSet {
         return gaps;
     }
     /**
-     * Create an interval gap in the interval set.
-     * @param interval - The interval object or string representation.
+     * Removes the specified interval from the set, creating gaps in overlapping intervals.
+     *
+     * This is a subtractive operation that:
+     * - Trims overlapping intervals to exclude the gap region
+     * - Splits intervals that fully contain the gap into two separate intervals
+     * - Removes intervals fully contained within the gap
+     *
+     * @param interval - Interval region to remove (IInterval object or string notation)
      * @example
-     * intervalSet.createIntervalGap(new Interval({ a: new IntervalNumber(5), b: new IntervalNumber(10, false) }));
+     * const set = new IntervalSet({ intervals: ['[1, 10]'] });
+     * set.createIntervalGap('[4, 6]');
+     * console.log(set.toString()); // "[1, 4), (6, 10]"
+     *
+     * @example
+     * // Trimming an overlapping interval
+     * const set2 = new IntervalSet({ intervals: ['[1, 10]', '[15, 20]'] });
+     * set2.createIntervalGap('[8, 17]');
+     * console.log(set2.toString()); // "[1, 8), (17, 20]"
      */
     createIntervalGap(interval) {
         const intervalObject = new Interval(interval);
@@ -244,7 +368,8 @@ export class IntervalSet {
             // if there's only 1 overlapping interval and it contains the given interval, then split the overlapping interval into 2 intervals
             if (overlappingIntervalSet.intervals.length === 1 &&
                 overlappingIntervalSet.intervals[0].contains(intervalObject)) {
-                this.clear();
+                // Remove only the specific interval being split, not all intervals
+                this.removeInterval(overlappingIntervalSet.intervals[0]);
                 this.addInterval(new Interval({
                     a: overlappingIntervalSet.intervals[0].min,
                     b: new IntervalNumber(intervalObject.min.number, !intervalObject.min.isClosed),
@@ -263,9 +388,25 @@ export class IntervalSet {
         }
     }
     /**
-     * Remove interval gaps in the interval set.
-     * If interval set is already merged, then the gaps are removed depending on the replaceGapsWithNewIntervals parameter.
-     * If interval set is not merged, then resolve the existing sets annd remove contained intervals, hen remove the gaps depending on the replaceGapsWithNewIntervals parameter.
+     * Connects all intervals by eliminating gaps between them.
+     *
+     * Adjusts interval endpoints so each interval touches the next with complementary closure,
+     * creating a continuous chain without gaps or overlaps.
+     * Automatically disables mergeAddedInterval mode after chaining.
+     *
+     * @example
+     * const set = new IntervalSet({ intervals: ['[1, 5]', '[10, 15]', '[20, 25]'] });
+     * set.chainIntervals();
+     * console.log(set.toString()); // "[1, 5], (5, 10], (10, 15], (15, 20], (20, 25]"
+     *
+     * @example
+     * // With overlapping intervals
+     * const set2 = new IntervalSet({
+     *   intervals: ['[1, 8]', '[5, 12]', '[15, 20]'],
+     *   options: { mergeAddedInterval: false }
+     * });
+     * set2.chainIntervals();
+     * // Removes overlaps and chains: [1, 8], (8, 12], (12, 20]
      */
     chainIntervals() {
         const intervalsCopy = this.intervals;
@@ -291,7 +432,8 @@ export class IntervalSet {
                 if (current.containsMax(next.max) || next.max.number < current.max.number) {
                     intervalsCopy.splice(i + 1, 1); // Remove the next interval
                     // Adjust the current interval's max if necessary
-                    current.max = new IntervalNumber(safeMax(current.max.number, next.max.number), current.max.isClosed || next.max.isClosed);
+                    const newMaxValue = current.max.number > next.max.number ? current.max.number : next.max.number;
+                    current.max = new IntervalNumber(newMaxValue, current.max.isClosed || next.max.isClosed);
                     // update the current interval in the original intervals array
                     const localIntervalToUpdate = this._intervals.find((r) => r.toString() === current.toString());
                     if (localIntervalToUpdate) {
@@ -312,39 +454,31 @@ export class IntervalSet {
         }
     }
     /**
-     * Returns the interval in the interval set that contain the given number.
-     * @param x - The number to check.
+     * Finds all intervals in the set that contain the given numeric value.
+     *
+     * @param x - The numeric value to check (number or bigint)
+     * @returns Array of intervals containing x (empty array if none)
      * @example
-     * const intervalSet: IntervalSet = new IntervalSet({ intervals: [new Interval({ a: 1, b: 10 }), new Interval({ a: 20, b: 30 })], options: { mergeAddedInterval: true });
-     * const intervals: Interval[] = intervalSet.getIntervalsContaining(5);
-     * @returns An array of Interval objects that contain the provided number.
+     * const set = new IntervalSet({ intervals: ['[1, 10]', '[5, 15]', '[20, 30]'] });
+     * const containing = set.getIntervalsContaining(7);
+     * console.log(containing.length); // 2 (both [1, 10] and [5, 15] contain 7)
+     *
+     * @example
+     * const none = set.getIntervalsContaining(18);
+     * console.log(none.length); // 0 (no intervals contain 18)
      */
     getIntervalsContaining(x) {
         return this._intervals.filter((r) => r.containsNumber(x));
     }
     /**
-     * Returns a string representation of the interval set.
-     * Example: "[1, 5), (10, 15]"
+     * Returns a string representation of all intervals in the set.
+     *
+     * @returns Comma-separated list of interval strings
+     * @example
+     * const set = new IntervalSet({ intervals: ['[1, 5)', '(10, 15]'] });
+     * console.log(set.toString()); // "[1, 5), (10, 15]"
      */
     toString() {
         return this._intervals.map((interval) => interval.toString()).join(", ");
     }
-}
-/**
- * Returns the minimum of two numeric values, handling both numbers and bigints.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @returns The smaller of the two values.
- */
-export function safeMin(a, b) {
-    return a < b ? a : b;
-}
-/**
- * Returns the maximum of two numeric values, handling both numbers and bigints.
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @returns The larger of the two values.
- */
-export function safeMax(a, b) {
-    return a > b ? a : b;
 }
