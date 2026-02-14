@@ -1,11 +1,7 @@
 /**
- * Represents an interval.
- * To not be opinionated, we use a and b to represent the interval, where either a or b can be greater than the other.
- * name is optional, but can be useful for keeping track of the interval.
- * @example
- * const interval: IInterval = { a: new IntervalNumber(1, false), b: new IntervalNumber(10), name: 'Interval 1' };
+ * Represents a numeric value (number or bigint).
  */
-export type IInterval = { a: IntervalNumber, b: IntervalNumber, name?: string };
+export type NumericValue = number | bigint;
 
 /**
  * Represents a numeric endpoint in an interval with an inclusivity flag.
@@ -45,9 +41,11 @@ export class IntervalNumber {
 }
 
 /**
- * Represents an interval.
- * To not be opinionated, we use a and b to represent the interval, where either a or b can be greater than the other.
- * name is optional, but can be useful for keeping track of the interval.
+ * Represents a mathematical interval with flexible endpoints.
+ * 
+ * Intervals use order-agnostic endpoints (a and b) internally but expose ordered min/max properties.
+ * Supports both number and bigint values, with special handling for Infinity/-Infinity.
+ * 
  * @example
  * const interval: IInterval = { a: new IntervalNumber(1, false), b: new IntervalNumber(10), name: 'Interval 1' };
  */
