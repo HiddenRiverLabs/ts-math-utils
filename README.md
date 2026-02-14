@@ -5,11 +5,23 @@
 
 Math-based objects not included in JS, built in TS.
 
+## Installation
+
+```bash
+npm install ts-math-utils
+```
+
 ## Intervals
 
 The `Interval` class represents a mathematical interval with flexible endpoints and inclusivity. Supports number and bigint.
 
+**Key Types:**
+
+- `IntervalNumber` — Wraps a numeric value with an `isClosed` flag (true = inclusive `[]`, false = exclusive `()`).
+- `IInterval` — Object with `a` and `b` endpoints and optional `name`.
+
 **Features:**
+
 - Create an `Interval` from an `IInterval` object or a string in mathematical notation (e.g., `[1, 5)`, `(2, 10]`).
 - Endpoints can be open or closed (`[]` for inclusive, `()` for exclusive).
 - Supports infinite endpoints (`-Infinity`, `Infinity`).
@@ -20,10 +32,11 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
   - `Interval.toInterval(str)` — Parses a string into an `Interval` instance.
 - Methods for containment and overlap:
   - `.containsNumber(x)` — Checks if a number is within the interval.
-  - `.containsMin(intervalNumber)` — Checks if an `IntervalNumber` is a valid minimum within the interval.
-  - `.containsMax(intervalNumber)` — Checks if an `IntervalNumber` is a valid maximum within the interval.
+  - `.containsMin(x)` — Checks if an `IntervalNumber` is within the interval, considering it as a minimum bound.
+  - `.containsMax(x)` — Checks if an `IntervalNumber` is within the interval, considering it as a maximum bound.
   - `.contains(x)` — Checks if an `IntervalNumber` or another `Interval` is fully contained.
   - `.overlaps(interval)` — Checks if two intervals overlap.
+  - `.isEmpty()` — Checks if the interval is empty.
 - Equality and copying:
   - `.equals(other: IntervalNumber)` — Checks if two `IntervalNumber`s are equal.
 - Properties:
@@ -36,6 +49,7 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
 The `IntervalSet` class manages a collection of `Interval` objects with advanced set operations. Supports number and bigint.
 
 **Features:**
+
 - Add, remove, and clear intervals:
   - `.addInterval(interval)` — Add an interval (object or string).
   - `.removeInterval(interval)` — Remove an interval (object or string).
@@ -83,18 +97,19 @@ console.log(set.toString()); // "[1, 5), [5, 15)"
 
 ## Range
 
-The `range()` function utilizes the `IInterval` to be used in `for..of` loops. Supports number and bigint.
+The `range()` function creates an iterable for a specified `IInterval` with a configurable step size. Supports number and bigint.
 
 **Features:**
-- Use an `IInterval` or string representation of an `Interval` to iterate over the range.
+
+- Accepts an `IInterval` or string representation of an `Interval`.
 - Default step is `1`.
-- Loop forever by passing `Infinity`
-- If either start or end value is of type bigint, both numbers are evaluated as bigint and each step yielded as bigint
+- Loop forever by passing `Infinity` as an endpoint.
+- If either endpoint is bigint, all values are evaluated and yielded as bigint.
 
 ## Example Usage
 
 ```typescript
-import { NumericValue } from 'ts-math-utils';
+import { NumericValue, range } from 'ts-math-utils';
 
 const result: NumericValue[] = [];
 for (const n of range('[0n, Infinity)')) {
