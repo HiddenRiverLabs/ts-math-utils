@@ -133,12 +133,8 @@ export class IntervalSet {
             if (current.overlaps(next) ||
                 (current.max.number === next.min.number && (current.max.isClosed || next.min.isClosed))) {
                 // Merge intervals
-                current.min = current.min.number < next.min.number || (current.min.number === next.min.number && current.min.isClosed)
-                    ? current.min
-                    : next.min;
-                current.max = current.max.number > next.max.number || (current.max.number === next.max.number && current.max.isClosed)
-                    ? current.max
-                    : next.max;
+                current.min = new IntervalNumber(safeMin(current.min.number, next.min.number), current.min.isClosed || next.min.isClosed);
+                current.max = new IntervalNumber(safeMax(current.max.number, next.max.number), current.max.isClosed || next.max.isClosed);
                 intervals.splice(i + 1, 1); // Remove the merged interval
             }
             else {
@@ -166,7 +162,11 @@ export class IntervalSet {
     }
     _getGapsForInterval(interval, intervals) {
         const gaps = [];
-        const overlappingIntervals = intervals.filter((r) => r.overlaps(interval));
+        const isContained = intervals.some((r) => r.contains(interval));
+        if (isContained) {
+            return gaps; // No gaps if the interval is contained within existing intervals
+        }
+        const overlappingIntervals = intervals.filter((r) => interval.overlaps(r));
         if (overlappingIntervals.length === 0) {
             return [interval];
         }
@@ -290,9 +290,19 @@ export class IntervalSet {
                 const next = intervalsCopy[i + 1];
                 if (current.containsMax(next.max) || next.max.number < current.max.number) {
                     intervalsCopy.splice(i + 1, 1); // Remove the next interval
+                    // Adjust the current interval's max if necessary
+                    current.max = new IntervalNumber(safeMax(current.max.number, next.max.number), current.max.isClosed || next.max.isClosed);
+                    // update the current interval in the original intervals array
+                    const localIntervalToUpdate = this._intervals.find((r) => r.toString() === current.toString());
+                    if (localIntervalToUpdate) {
+                        localIntervalToUpdate.max = current.max;
+                    }
+                    // Remove the next interval from the original intervals array
+                    this.removeInterval(next);
+                    // Decrement i to recheck the current position after removal
                     i--;
                 }
-                else if (!current.containsMax(next.max) && current.max.number < next.max.number) {
+                else if (!current.containsMax(next.max)) {
                     const localIntervalToUpdate = this._intervals.find((r) => r.toString() === next.toString());
                     if (localIntervalToUpdate) {
                         localIntervalToUpdate.min = new IntervalNumber(current.max.number, !current.max.isClosed);
@@ -319,4 +329,22 @@ export class IntervalSet {
     toString() {
         return this._intervals.map((interval) => interval.toString()).join(", ");
     }
+}
+/**
+ * Returns the minimum of two numeric values, handling both numbers and bigints.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @returns The smaller of the two values.
+ */
+export function safeMin(a, b) {
+    return a < b ? a : b;
+}
+/**
+ * Returns the maximum of two numeric values, handling both numbers and bigints.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @returns The larger of the two values.
+ */
+export function safeMax(a, b) {
+    return a > b ? a : b;
 }

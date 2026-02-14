@@ -1,6 +1,6 @@
 {
-  "name": "@hrl/ts-math-utils",
-  "version": "2.1.2",
-  "license": "MIT",
-  "exports": "./src/mod.ts"
+    "name": "@hrl/ts-math-utils",
+    "version": "2.1.2",
+    "license": "MIT",
+    "exports": "./src/mod.ts"
 }
