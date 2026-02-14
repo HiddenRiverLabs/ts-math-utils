@@ -32,6 +32,8 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
   - `Interval.toInterval(str)` — Parses a string into an `Interval` instance.
 - Methods for containment and overlap:
   - `.containsNumber(x)` — Checks if a number is within the interval.
+  - `.containsMin(x)` — Checks if an `IntervalNumber` is within the interval, considering it as a minimum bound.
+  - `.containsMax(x)` — Checks if an `IntervalNumber` is within the interval, considering it as a maximum bound.
   - `.contains(x)` — Checks if an `IntervalNumber` or another `Interval` is fully contained.
   - `.overlaps(interval)` — Checks if two intervals overlap.
   - `.isEmpty()` — Checks if the interval is empty.
