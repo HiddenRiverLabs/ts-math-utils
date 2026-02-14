@@ -215,8 +215,10 @@ export class Interval {
      * new Interval('[1, 5]').overlaps(new Interval('[5, 10]'))   // true (touch at 5)
      */
     overlaps(interval) {
-        return this.containsMin(interval.min) || this.containsMax(interval.max) ||
-            interval.containsMin(this.min) || interval.containsMax(this.max);
+        return (this.containsMin(interval.min) ||
+            this.containsMax(interval.max) ||
+            interval.containsMin(this.min) ||
+            interval.containsMax(this.max));
     }
     /**
      * Checks if this interval complements another interval (they touch but don't overlap).
@@ -236,8 +238,8 @@ export class Interval {
     compliments(interval) {
         const minCmp = Interval.compareNumeric(this.max.number, interval.min.number);
         const maxCmp = Interval.compareNumeric(this.min.number, interval.max.number);
-        const touchAtMin = minCmp === 0 && (this.max.isClosed !== interval.min.isClosed);
-        const touchAtMax = maxCmp === 0 && (this.min.isClosed !== interval.max.isClosed);
+        const touchAtMin = minCmp === 0 && this.max.isClosed !== interval.min.isClosed;
+        const touchAtMax = maxCmp === 0 && this.min.isClosed !== interval.max.isClosed;
         return touchAtMin || touchAtMax;
     }
     /**
@@ -425,14 +427,14 @@ export class Interval {
         const minCmp = Interval.compareNumeric(a.min.number, b.min.number);
         const maxCmp = Interval.compareNumeric(a.max.number, b.max.number);
         const newMin = minCmp <= 0
-            ? (minCmp === 0
+            ? minCmp === 0
                 ? new IntervalNumber(a.min.number, a.min.isClosed || b.min.isClosed)
-                : new IntervalNumber(a.min.number, a.min.isClosed))
+                : new IntervalNumber(a.min.number, a.min.isClosed)
             : new IntervalNumber(b.min.number, b.min.isClosed);
         const newMax = maxCmp >= 0
-            ? (maxCmp === 0
+            ? maxCmp === 0
                 ? new IntervalNumber(a.max.number, a.max.isClosed || b.max.isClosed)
-                : new IntervalNumber(a.max.number, a.max.isClosed))
+                : new IntervalNumber(a.max.number, a.max.isClosed)
             : new IntervalNumber(b.max.number, b.max.isClosed);
         return new Interval({ a: newMin, b: newMax });
     }

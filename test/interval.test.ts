@@ -725,20 +725,36 @@ describe("Interval", () => {
     });
 
     it("should handle equal endpoints", () => {
-      expect(Interval.intersects(new Interval("[5, 5]"), new Interval("[5, 5]"))?.toString()).toBe("[5, 5]");
-      expect(Interval.intersects(new Interval("[1, 5]"), new Interval("[5, 10]"))?.toString()).toBe("[5, 5]");
+      expect(Interval.intersects(new Interval("[5, 5]"), new Interval("[5, 5]"))?.toString()).toBe(
+        "[5, 5]",
+      );
+      expect(Interval.intersects(new Interval("[1, 5]"), new Interval("[5, 10]"))?.toString()).toBe(
+        "[5, 5]",
+      );
     });
 
     it("should handle open boundaries correctly", () => {
-      expect(Interval.intersects(new Interval("[1, 5)"), new Interval("(3, 10]"))?.toString()).toBe("(3, 5)");
+      expect(Interval.intersects(new Interval("[1, 5)"), new Interval("(3, 10]"))?.toString()).toBe(
+        "(3, 5)",
+      );
     });
 
     it("should determine min/max from both intervals correctly", () => {
-      expect(Interval.intersects(new Interval("[3, 8]"), new Interval("[3, 10]"))?.toString()).toBe("[3, 8]");
-      expect(Interval.intersects(new Interval("[1, 15]"), new Interval("[10, 20]"))?.toString()).toBe("[10, 15]");
-      expect(Interval.intersects(new Interval("[5, 10]"), new Interval("[1, 15]"))?.toString()).toBe("[5, 10]");
-      expect(Interval.intersects(new Interval("[5, 8]"), new Interval("[7, 15]"))?.toString()).toBe("[7, 8]");
-      expect(Interval.intersects(new Interval("[5, 20]"), new Interval("[7, 15]"))?.toString()).toBe("[7, 15]");
+      expect(Interval.intersects(new Interval("[3, 8]"), new Interval("[3, 10]"))?.toString()).toBe(
+        "[3, 8]",
+      );
+      expect(
+        Interval.intersects(new Interval("[1, 15]"), new Interval("[10, 20]"))?.toString(),
+      ).toBe("[10, 15]");
+      expect(
+        Interval.intersects(new Interval("[5, 10]"), new Interval("[1, 15]"))?.toString(),
+      ).toBe("[5, 10]");
+      expect(Interval.intersects(new Interval("[5, 8]"), new Interval("[7, 15]"))?.toString()).toBe(
+        "[7, 8]",
+      );
+      expect(
+        Interval.intersects(new Interval("[5, 20]"), new Interval("[7, 15]"))?.toString(),
+      ).toBe("[7, 15]");
     });
 
     it("should return null for type-incompatible intervals", () => {
@@ -746,32 +762,65 @@ describe("Interval", () => {
     });
 
     it("should handle Infinity", () => {
-      expect(Interval.intersects(new Interval("[-Infinity, 10]"), new Interval("[0, Infinity)"))?.toString()).toBe("[0, 10]");
-      expect(Interval.intersects(new Interval("[-Infinity, Infinity)"), new Interval("(-Infinity, Infinity]"))?.toString()).toBe("(-Infinity, Infinity)");
+      expect(
+        Interval.intersects(
+          new Interval("[-Infinity, 10]"),
+          new Interval("[0, Infinity)"),
+        )?.toString(),
+      ).toBe("[0, 10]");
+      expect(
+        Interval.intersects(
+          new Interval("[-Infinity, Infinity)"),
+          new Interval("(-Infinity, Infinity]"),
+        )?.toString(),
+      ).toBe("(-Infinity, Infinity)");
     });
 
     it("should handle bigint intervals", () => {
-      expect(Interval.intersects(new Interval("[1n, 5n]"), new Interval("[3n, 10n]"))?.toString()).toBe("[3n, 5n]");
-      expect(Interval.intersects(new Interval("[-Infinity, 100n]"), new Interval("[50n, 200n]"))?.toString()).toBe("[50n, 100n]");
+      expect(
+        Interval.intersects(new Interval("[1n, 5n]"), new Interval("[3n, 10n]"))?.toString(),
+      ).toBe("[3n, 5n]");
+      expect(
+        Interval.intersects(
+          new Interval("[-Infinity, 100n]"),
+          new Interval("[50n, 200n]"),
+        )?.toString(),
+      ).toBe("[50n, 100n]");
     });
   });
 
   describe("union", () => {
     it("should merge overlapping intervals", () => {
-      expect(Interval.union(new Interval("[1, 10]"), new Interval("[5, 15]")).toString()).toBe("[1, 15]");
-      expect(Interval.union(new Interval("[1, 20]"), new Interval("[5, 15]")).toString()).toBe("[1, 20]");
-      expect(Interval.union(new Interval("[1, 15]"), new Interval("[5, 20]")).toString()).toBe("[1, 20]");
+      expect(Interval.union(new Interval("[1, 10]"), new Interval("[5, 15]")).toString()).toBe(
+        "[1, 15]",
+      );
+      expect(Interval.union(new Interval("[1, 20]"), new Interval("[5, 15]")).toString()).toBe(
+        "[1, 20]",
+      );
+      expect(Interval.union(new Interval("[1, 15]"), new Interval("[5, 20]")).toString()).toBe(
+        "[1, 20]",
+      );
     });
 
     it("should throw error for disjoint intervals", () => {
-      expect(() => Interval.union(new Interval("[1, 5)"), new Interval("[10, 15]"))).toThrow("Cannot merge disjoint intervals");
-      expect(() => Interval.union(new Interval("[1, 5)"), new Interval("(5, 10]"))).toThrow("Cannot merge disjoint intervals");
+      expect(() => Interval.union(new Interval("[1, 5)"), new Interval("[10, 15]"))).toThrow(
+        "Cannot merge disjoint intervals",
+      );
+      expect(() => Interval.union(new Interval("[1, 5)"), new Interval("(5, 10]"))).toThrow(
+        "Cannot merge disjoint intervals",
+      );
     });
 
     it("should merge adjacent intervals with at least one closed endpoint", () => {
-      expect(Interval.union(new Interval("[1, 5]"), new Interval("[5, 10]")).toString()).toBe("[1, 10]");
-      expect(Interval.union(new Interval("[1, 5]"), new Interval("[5, 10)")).toString()).toBe("[1, 10)");
-      expect(Interval.union(new Interval("[1, 5)"), new Interval("[5, 10]")).toString()).toBe("[1, 10]");
+      expect(Interval.union(new Interval("[1, 5]"), new Interval("[5, 10]")).toString()).toBe(
+        "[1, 10]",
+      );
+      expect(Interval.union(new Interval("[1, 5]"), new Interval("[5, 10)")).toString()).toBe(
+        "[1, 10)",
+      );
+      expect(Interval.union(new Interval("[1, 5)"), new Interval("[5, 10]")).toString()).toBe(
+        "[1, 10]",
+      );
     });
 
     it("should work regardless of interval order", () => {
@@ -786,48 +835,77 @@ describe("Interval", () => {
     });
 
     it("should handle Infinity", () => {
-      expect(Interval.union(new Interval("[1, 10]"), new Interval("[5, Infinity)")).toString()).toBe("[1, Infinity)");
+      expect(
+        Interval.union(new Interval("[1, 10]"), new Interval("[5, Infinity)")).toString(),
+      ).toBe("[1, Infinity)");
     });
 
     it("should handle containment cases", () => {
-      expect(Interval.union(new Interval("[1, 20]"), new Interval("[5, 10]")).toString()).toBe("[1, 20]");
-      expect(Interval.union(new Interval("[5, 10]"), new Interval("[1, 20]")).toString()).toBe("[1, 20]");
+      expect(Interval.union(new Interval("[1, 20]"), new Interval("[5, 10]")).toString()).toBe(
+        "[1, 20]",
+      );
+      expect(Interval.union(new Interval("[5, 10]"), new Interval("[1, 20]")).toString()).toBe(
+        "[1, 20]",
+      );
     });
 
     it("should merge when intervals are identical", () => {
-      expect(Interval.union(new Interval("[1, 10]"), new Interval("[1, 10]")).toString()).toBe("[1, 10]");
-      expect(Interval.union(new Interval("[5, 15]"), new Interval("[5, 15]")).toString()).toBe("[5, 15]");
+      expect(Interval.union(new Interval("[1, 10]"), new Interval("[1, 10]")).toString()).toBe(
+        "[1, 10]",
+      );
+      expect(Interval.union(new Interval("[5, 15]"), new Interval("[5, 15]")).toString()).toBe(
+        "[5, 15]",
+      );
     });
 
     it("should handle bigint intervals", () => {
-      expect(Interval.union(new Interval("[1n, 10n]"), new Interval("[5n, 15n]")).toString()).toBe("[1n, 15n]");
+      expect(Interval.union(new Interval("[1n, 10n]"), new Interval("[5n, 15n]")).toString()).toBe(
+        "[1n, 15n]",
+      );
     });
   });
 
   describe("validInterval", () => {
     it("should return true for valid intervals", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5) })).toBe(true);
+      expect(Interval.validInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5) })).toBe(
+        true,
+      );
     });
 
     it("should return false for equal excluded endpoints", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(5, false), b: new IntervalNumber(5, false) })).toBe(false);
+      expect(
+        Interval.validInterval({
+          a: new IntervalNumber(5, false),
+          b: new IntervalNumber(5, false),
+        }),
+      ).toBe(false);
     });
 
     it("should return true for equal included endpoints", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(5, true), b: new IntervalNumber(5, true) })).toBe(true);
+      expect(
+        Interval.validInterval({ a: new IntervalNumber(5, true), b: new IntervalNumber(5, true) }),
+      ).toBe(true);
     });
 
     it("should return true for bigint intervals", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(5n) })).toBe(true);
+      expect(Interval.validInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(5n) })).toBe(
+        true,
+      );
     });
 
     it("should allow mixing bigint with Infinity", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(Infinity) })).toBe(true);
-      expect(Interval.validInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(5n) })).toBe(true);
+      expect(
+        Interval.validInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(Infinity) }),
+      ).toBe(true);
+      expect(
+        Interval.validInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(5n) }),
+      ).toBe(true);
     });
 
     it("should reject mixing finite number with finite bigint", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5n) })).toBe(false);
+      expect(Interval.validInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5n) })).toBe(
+        false,
+      );
     });
   });
 
@@ -854,7 +932,9 @@ describe("Interval", () => {
       invalidInterval._a = new IntervalNumber(5, false);
       invalidInterval._b = new IntervalNumber(5, false);
       invalidInterval.name = undefined;
-      expect(() => Interval.intervalType(invalidInterval)).toThrow("Invalid interval: Cannot exclude either minimum");
+      expect(() => Interval.intervalType(invalidInterval)).toThrow(
+        "Invalid interval: Cannot exclude either minimum",
+      );
     });
 
     it("should throw error for mixed types without Infinity", () => {
@@ -863,7 +943,9 @@ describe("Interval", () => {
       const mixedInterval = Object.create(Interval.prototype);
       mixedInterval._a = new IntervalNumber(1, true);
       mixedInterval._b = new IntervalNumber(10n, true);
-      expect(() => Interval.intervalType(mixedInterval)).toThrow("Invalid interval: Cannot exclude either minimum");
+      expect(() => Interval.intervalType(mixedInterval)).toThrow(
+        "Invalid interval: Cannot exclude either minimum",
+      );
     });
   });
 
@@ -1006,13 +1088,21 @@ describe("Interval", () => {
 
   describe("validInterval with Infinity edge cases", () => {
     it("should validate -Infinity with other values", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(100) })).toBe(true);
-      expect(Interval.validInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(100n) })).toBe(true);
+      expect(
+        Interval.validInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(100) }),
+      ).toBe(true);
+      expect(
+        Interval.validInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(100n) }),
+      ).toBe(true);
     });
 
     it("should validate Infinity with other values", () => {
-      expect(Interval.validInterval({ a: new IntervalNumber(-100), b: new IntervalNumber(Infinity) })).toBe(true);
-      expect(Interval.validInterval({ a: new IntervalNumber(-100n), b: new IntervalNumber(Infinity) })).toBe(true);
+      expect(
+        Interval.validInterval({ a: new IntervalNumber(-100), b: new IntervalNumber(Infinity) }),
+      ).toBe(true);
+      expect(
+        Interval.validInterval({ a: new IntervalNumber(-100n), b: new IntervalNumber(Infinity) }),
+      ).toBe(true);
     });
   });
 
@@ -1285,11 +1375,15 @@ describe("isIntervalNumber", () => {
 
 describe("compareNumeric public API", () => {
   it("should throw when comparing bigint with finite number", () => {
-    expect(() => Interval.compareNumeric(5n, 10)).toThrow("Cannot compare bigint with finite number");
+    expect(() => Interval.compareNumeric(5n, 10)).toThrow(
+      "Cannot compare bigint with finite number",
+    );
   });
 
   it("should throw when comparing finite number with bigint", () => {
-    expect(() => Interval.compareNumeric(10, 5n)).toThrow("Cannot compare finite number with bigint");
+    expect(() => Interval.compareNumeric(10, 5n)).toThrow(
+      "Cannot compare finite number with bigint",
+    );
   });
 
   it("should handle equal values of same type", () => {

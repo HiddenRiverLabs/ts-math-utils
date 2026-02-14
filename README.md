@@ -16,6 +16,7 @@ npm install ts-math-utils
 The `Interval` class represents a mathematical interval with flexible endpoints and inclusivity. Supports number and bigint.
 
 **Key Types:**
+
 - `IntervalNumber` — Wraps a numeric value with an `isClosed` flag (true = inclusive `[]`, false = exclusive `()`).
 - `IInterval` — Object with `a` and `b` endpoints and optional `name`.
 

@@ -5,11 +5,11 @@ export type NumericValue = number | bigint;
 
 /**
  * Represents a numeric endpoint in an interval with an inclusivity flag.
- * 
+ *
  * @example
  * new IntervalNumber(5, true)   // Closed endpoint: included in interval
  * new IntervalNumber(5, false)  // Open endpoint: excluded from interval
- * 
+ *
  * @property number - The numeric value (number or bigint)
  * @property isClosed - If true, endpoint is inclusive (bracket []); if false, exclusive (parenthesis ())
  */
@@ -24,7 +24,7 @@ export class IntervalNumber {
 
   /**
    * Checks equality between this IntervalNumber and another value.
-   * 
+   *
    * @param x - The value to compare (IntervalNumber or NumericValue)
    * @returns true if both number and isClosed properties match
    * @example
@@ -42,10 +42,10 @@ export class IntervalNumber {
 
 /**
  * Represents a mathematical interval with flexible endpoints.
- * 
+ *
  * Intervals use order-agnostic endpoints (a and b) internally but expose ordered min/max properties.
  * Supports both number and bigint values, with special handling for Infinity/-Infinity.
- * 
+ *
  * @example
  * const interval: IInterval = { a: new IntervalNumber(1, false), b: new IntervalNumber(10), name: 'Interval 1' };
  */
@@ -53,15 +53,15 @@ export type IInterval = { a: IntervalNumber; b: IntervalNumber; name?: string };
 
 /**
  * Represents a mathematical interval with flexible endpoints.
- * 
+ *
  * Intervals use order-agnostic endpoints (a and b) internally but expose ordered min/max properties.
  * Supports both number and bigint values, with special handling for Infinity/-Infinity.
- * 
+ *
  * @example
  * // From object notation
  * const interval1 = new Interval({ a: new IntervalNumber(1, false), b: new IntervalNumber(10) });
  * console.log(interval1.toString()); // (1, 10]
- * 
+ *
  * // From string notation
  * const interval2 = new Interval('[1, 10)');
  * console.log(interval2.min.number); // 1
@@ -143,7 +143,7 @@ export class Interval implements IInterval {
 
   /**
    * Checks if this interval contains the given numeric value.
-   * 
+   *
    * @param x - The numeric value to check (number or bigint)
    * @returns true if the value is within this interval
    * @throws Error if x has incompatible type (finite number vs bigint)
@@ -157,7 +157,7 @@ export class Interval implements IInterval {
 
   /**
    * Checks if this interval contains the given IntervalNumber passed in as a minimum.
-   * 
+   *
    * @param x - The minimum as IntervalNumber
    * @returns true if x is a valid minimum within this interval
    * @throws Error if x has incompatible type (finite number vs bigint)
@@ -168,7 +168,7 @@ export class Interval implements IInterval {
   containsMin(x: IntervalNumber): boolean {
     const minCmp = Interval.compareNumeric(this.min.number, x.number);
     const maxCmp = Interval.compareNumeric(this.max.number, x.number);
-    
+
     let containsMinValue = false;
     // there's directionality when the number passed in is open and a minimum
     if (!x.isClosed) {
@@ -183,7 +183,7 @@ export class Interval implements IInterval {
 
   /**
    * Checks if this interval contains the given IntervalNumber passed in as a maximum.
-   * 
+   *
    * @param x - The maximum as IntervalNumber
    * @returns true if x is a valid maximum within this interval
    * @throws Error if x has incompatible type (finite number vs bigint)
@@ -194,7 +194,7 @@ export class Interval implements IInterval {
   containsMax(x: IntervalNumber): boolean {
     const minCmp = Interval.compareNumeric(this.min.number, x.number);
     const maxCmp = Interval.compareNumeric(this.max.number, x.number);
-    
+
     let containsMaxValue = false;
     // there's directionality when the number passed in is open and a maximum
     if (!x.isClosed) {
@@ -209,10 +209,10 @@ export class Interval implements IInterval {
 
   /**
    * Checks if this interval contains the given IntervalNumber or Interval.
-   * 
+   *
    * For IntervalNumber: checks if the value and closure are valid within this interval.
    * For Interval: checks if the entire interval is contained (both min and max).
-   * 
+   *
    * @param x - The IntervalNumber or Interval to check
    * @returns true if x is fully contained within this interval
    * @throws Error if x has incompatible type (finite number vs bigint)
@@ -225,7 +225,7 @@ export class Interval implements IInterval {
     if (Interval.isIntervalNumber(x)) {
       const minCmp = Interval.compareNumeric(this.min.number, x.number);
       const maxCmp = Interval.compareNumeric(this.max.number, x.number);
-      
+
       const isAboveMin = minCmp < 0 || (minCmp === 0 && this.min.isClosed && x.isClosed);
       const isBelowMax = maxCmp > 0 || (maxCmp === 0 && this.max.isClosed && x.isClosed);
 
@@ -237,9 +237,9 @@ export class Interval implements IInterval {
 
   /**
    * Checks if this interval overlaps with another interval.
-   * 
+   *
    * Two intervals overlap if they share any common points.
-   * 
+   *
    * @param interval - The interval to check for overlap
    * @returns true if the intervals have any points in common
    * @throws Error if intervals have incompatible types (finite number vs bigint)
@@ -249,17 +249,21 @@ export class Interval implements IInterval {
    * new Interval('[1, 5]').overlaps(new Interval('[5, 10]'))   // true (touch at 5)
    */
   overlaps(interval: Interval): boolean {
-    return this.containsMin(interval.min) || this.containsMax(interval.max) ||
-           interval.containsMin(this.min) || interval.containsMax(this.max);
+    return (
+      this.containsMin(interval.min) ||
+      this.containsMax(interval.max) ||
+      interval.containsMin(this.min) ||
+      interval.containsMax(this.max)
+    );
   }
 
   /**
    * Checks if this interval complements another interval (they touch but don't overlap).
-   * 
+   *
    * Two intervals complement each other when they meet at exactly one point where
    * one endpoint is closed and the other is open. This allows them to be merged into
    * a continuous interval without gaps or overlaps.
-   * 
+   *
    * @param interval - The interval to check for complementarity
    * @returns true if the intervals touch with opposite closure (e.g., [1,5) and [5,10])
    * @throws Error if intervals have incompatible types (finite number vs bigint)
@@ -271,18 +275,18 @@ export class Interval implements IInterval {
   compliments(interval: Interval): boolean {
     const minCmp = Interval.compareNumeric(this.max.number, interval.min.number);
     const maxCmp = Interval.compareNumeric(this.min.number, interval.max.number);
-    const touchAtMin = minCmp === 0 && (this.max.isClosed !== interval.min.isClosed);
-    const touchAtMax = maxCmp === 0 && (this.min.isClosed !== interval.max.isClosed);
+    const touchAtMin = minCmp === 0 && this.max.isClosed !== interval.min.isClosed;
+    const touchAtMax = maxCmp === 0 && this.min.isClosed !== interval.max.isClosed;
     return touchAtMin || touchAtMax;
   }
 
   /**
    * Checks if this interval is empty (contains no points).
-   * 
+   *
    * An interval is empty if min > max, or if min === max but both endpoints are open.
    * Note: The constructor and validInterval prevent direct creation of empty intervals,
    * but operations like intersection can produce them.
-   * 
+   *
    * @returns true if the interval contains no points
    * @example
    * new Interval('[5, 5]').isEmpty()   // false (single point)
@@ -316,10 +320,10 @@ export class Interval implements IInterval {
 
   /**
    * Determines the primary numeric type of an interval.
-   * 
+   *
    * Returns 'number' or 'bigint' based on the interval's finite endpoints.
    * When one endpoint is Infinity/-Infinity, returns the type of the finite endpoint.
-   * 
+   *
    * @param interval - The interval to check
    * @returns 'number' if interval uses numbers, 'bigint' if it uses bigints
    * @throws Error if interval is invalid or has incompatible mixed types
@@ -328,7 +332,7 @@ export class Interval implements IInterval {
    * Interval.intervalType(new Interval('[1n, 10n]'))         // 'bigint'
    * Interval.intervalType(new Interval('[-Infinity, 10n]'))  // 'bigint'
    */
-  public static intervalType(interval: Interval): 'number' | 'bigint' {
+  public static intervalType(interval: Interval): "number" | "bigint" {
     // check interval validity first
     if (!Interval.validInterval(interval)) {
       throw new Error(
@@ -336,8 +340,8 @@ export class Interval implements IInterval {
       );
     }
 
-    const minType = typeof interval.min.number as 'number' | 'bigint';
-    const maxType = typeof interval.max.number as 'number' | 'bigint';
+    const minType = typeof interval.min.number as "number" | "bigint";
+    const maxType = typeof interval.max.number as "number" | "bigint";
     if (minType === maxType) {
       return minType;
     }
@@ -357,10 +361,10 @@ export class Interval implements IInterval {
 
   /**
    * Computes the intersection of two intervals.
-   * 
+   *
    * Returns a new interval containing only the values that exist in both intervals.
    * If the intervals don't overlap or the result would be empty, returns null.
-   * 
+   *
    * @param i1 - First interval
    * @param i2 - Second interval
    * @returns The intersection interval, or null if disjoint or resulting interval is empty
@@ -369,7 +373,7 @@ export class Interval implements IInterval {
    *   new Interval('[1, 10]'),
    *   new Interval('[5, 15]')
    * ) // Returns [5, 10]
-   * 
+   *
    * Interval.intersects(
    *   new Interval('[1, 5)'),
    *   new Interval('[5, 10]')
@@ -383,38 +387,40 @@ export class Interval implements IInterval {
 
     // Intersection lower bound is the greater of the two mins
     const cmpMin = Interval.compareNumeric(i1.min.number, i2.min.number);
-    const newMin = cmpMin > 0
-      ? new IntervalNumber(i1.min.number, i1.min.isClosed)
-      : cmpMin < 0
-        ? new IntervalNumber(i2.min.number, i2.min.isClosed)
-        : new IntervalNumber(i1.min.number, i1.min.isClosed && i2.min.isClosed);
+    const newMin =
+      cmpMin > 0
+        ? new IntervalNumber(i1.min.number, i1.min.isClosed)
+        : cmpMin < 0
+          ? new IntervalNumber(i2.min.number, i2.min.isClosed)
+          : new IntervalNumber(i1.min.number, i1.min.isClosed && i2.min.isClosed);
 
     // Intersection upper bound is the lesser of the two maxes
     const cmpMax = Interval.compareNumeric(i1.max.number, i2.max.number);
-    const newMax = cmpMax < 0
-      ? new IntervalNumber(i1.max.number, i1.max.isClosed)
-      : cmpMax > 0
-        ? new IntervalNumber(i2.max.number, i2.max.isClosed)
-        : new IntervalNumber(i1.max.number, i1.max.isClosed && i2.max.isClosed);
+    const newMax =
+      cmpMax < 0
+        ? new IntervalNumber(i1.max.number, i1.max.isClosed)
+        : cmpMax > 0
+          ? new IntervalNumber(i2.max.number, i2.max.isClosed)
+          : new IntervalNumber(i1.max.number, i1.max.isClosed && i2.max.isClosed);
 
     // Check if the result would be empty (min > max)
     const cmpResult = Interval.compareNumeric(newMin.number, newMax.number);
     if (cmpResult > 0) return null;
 
     const candidate: IInterval = { a: newMin, b: newMax };
-    
+
     // Check if the result is valid (handles edge case where min === max but both open)
     if (!Interval.validInterval(candidate)) return null;
-    
+
     return new Interval(candidate);
   }
 
   /**
    * Computes the union of two overlapping or adjacent intervals.
-   * 
+   *
    * Alias for mergeIntervals. Merges two intervals that overlap or complement each other
    * (touch with opposite closure) into a single continuous interval.
-   * 
+   *
    * @param i1 - First interval
    * @param i2 - Second interval
    * @returns A new merged interval spanning both input intervals
@@ -425,13 +431,13 @@ export class Interval implements IInterval {
    *   new Interval('[1, 10]'),
    *   new Interval('[5, 15]')
    * ) // Returns [1, 15]
-   * 
+   *
    * // Complementary intervals (touch with opposite closure)
    * Interval.union(
    *   new Interval('[1, 5)'),
    *   new Interval('[5, 10]')
    * ) // Returns [1, 10]
-   * 
+   *
    * // Disjoint intervals throw error
    * Interval.union(
    *   new Interval('[1, 5)'),
@@ -444,11 +450,11 @@ export class Interval implements IInterval {
 
   /**
    * Merges two overlapping or adjacent intervals into a single interval.
-   * 
+   *
    * Combines two intervals that either overlap or complement each other (touch with
    * opposite closure). Order doesn't matter. The result spans from the minimum of
    * both intervals to the maximum, with closure determined by the original endpoints.
-   * 
+   *
    * @param a - First interval
    * @param b - Second interval
    * @returns A new merged interval spanning both input intervals
@@ -458,7 +464,7 @@ export class Interval implements IInterval {
    *   new Interval('[1, 5]'),
    *   new Interval('[3, 10]')
    * ) // Returns [1, 10]
-   * 
+   *
    * Interval.mergeIntervals(
    *   new Interval('[1, 5)'),
    *   new Interval('[5, 10]')
@@ -467,29 +473,31 @@ export class Interval implements IInterval {
   public static mergeIntervals(a: Interval, b: Interval): Interval {
     // Check if they overlap or complement each other (touch with opposite closure)
     const canMerge = a.overlaps(b) || a.compliments(b);
-    
+
     if (!canMerge) {
       throw new Error(
         `Cannot merge disjoint intervals. [${a.toString()}] and [${b.toString()}] do not overlap or touch.`,
       );
     }
-    
+
     // They can be merged - compute the union
     const minCmp = Interval.compareNumeric(a.min.number, b.min.number);
     const maxCmp = Interval.compareNumeric(a.max.number, b.max.number);
-    
-    const newMin = minCmp <= 0
-      ? (minCmp === 0
-        ? new IntervalNumber(a.min.number, a.min.isClosed || b.min.isClosed)
-        : new IntervalNumber(a.min.number, a.min.isClosed))
-      : new IntervalNumber(b.min.number, b.min.isClosed);
-    
-    const newMax = maxCmp >= 0
-      ? (maxCmp === 0
-        ? new IntervalNumber(a.max.number, a.max.isClosed || b.max.isClosed)
-        : new IntervalNumber(a.max.number, a.max.isClosed))
-      : new IntervalNumber(b.max.number, b.max.isClosed);
-    
+
+    const newMin =
+      minCmp <= 0
+        ? minCmp === 0
+          ? new IntervalNumber(a.min.number, a.min.isClosed || b.min.isClosed)
+          : new IntervalNumber(a.min.number, a.min.isClosed)
+        : new IntervalNumber(b.min.number, b.min.isClosed);
+
+    const newMax =
+      maxCmp >= 0
+        ? maxCmp === 0
+          ? new IntervalNumber(a.max.number, a.max.isClosed || b.max.isClosed)
+          : new IntervalNumber(a.max.number, a.max.isClosed)
+        : new IntervalNumber(b.max.number, b.max.isClosed);
+
     return new Interval({ a: newMin, b: newMax });
   }
 
@@ -501,7 +509,7 @@ export class Interval implements IInterval {
    * Validates that a new endpoint is type-compatible with an existing endpoint.
    * Enforces the same-type rule: both endpoints must be the same runtime type (number/bigint),
    * unless one is numeric Infinity/-Infinity.
-   * 
+   *
    * @param newValue - The new endpoint to set
    * @param existingValue - The existing endpoint to compare against
    * @throws Error if types are incompatible
@@ -511,7 +519,8 @@ export class Interval implements IInterval {
     const newType = typeof newValue.number;
     const existingType = typeof existingValue.number;
     const newIsInfinite = newType === "number" && !isFinite(newValue.number as number);
-    const existingIsInfinite = existingType === "number" && !isFinite(existingValue.number as number);
+    const existingIsInfinite =
+      existingType === "number" && !isFinite(existingValue.number as number);
 
     if (newType !== existingType && !newIsInfinite && !existingIsInfinite) {
       throw new Error(
@@ -523,7 +532,7 @@ export class Interval implements IInterval {
   /**
    * Validates that two endpoints don't form an invalid empty interval.
    * An interval is invalid if both endpoints are equal and both are open (exclusive).
-   * 
+   *
    * @param endpoint1 - First endpoint
    * @param endpoint2 - Second endpoint
    * @throws Error if both endpoints are equal and both are open
@@ -549,7 +558,7 @@ export class Interval implements IInterval {
   /**
    * Checks if two numeric values are type-compatible for interval operations.
    * Allows mixing only when one is Infinity/-Infinity.
-   * 
+   *
    * @param a - First numeric value
    * @param b - Second numeric value
    * @returns true if types are compatible, false otherwise
@@ -565,10 +574,10 @@ export class Interval implements IInterval {
 
   /**
    * Safely compares two numeric values (number or bigint).
-   * 
+   *
    * Supports comparing bigint with numeric Infinity/-Infinity.
    * Prevents unsafe comparisons (e.g., finite number vs bigint).
-   * 
+   *
    * @param a - First value to compare
    * @param b - Second value to compare
    * @returns -1 if a < b, 0 if a === b, 1 if a > b
@@ -607,10 +616,10 @@ export class Interval implements IInterval {
 
   /**
    * Parses a numeric string into a NumericValue (number or bigint).
-   * 
+   *
    * Handles bigint notation (suffix 'n'), standard numbers, Infinity/-Infinity,
    * and various number formats (hex, octal, binary).
-   * 
+   *
    * @param str - The string to parse
    * @returns A number or bigint value
    * @throws Error if the string is not a valid numeric value
@@ -640,12 +649,12 @@ export class Interval implements IInterval {
 
   /**
    * Validates whether an interval meets all requirements.
-   * 
+   *
    * An interval is valid if:
    * - Both endpoints are numeric (number or bigint)
    * - Both endpoints are the same type, unless one is Infinity/-Infinity
    * - If endpoints are equal, at least one must be closed (to contain a point)
-   * 
+   *
    * @param interval - The interval to validate
    * @returns true if the interval is valid
    * @example
@@ -656,10 +665,8 @@ export class Interval implements IInterval {
     const aIsValid = typeof interval.a.number === "number" || typeof interval.a.number === "bigint";
     const bIsValid = typeof interval.b.number === "number" || typeof interval.b.number === "bigint";
     // Allow a numeric Infinity/-Infinity to be paired with a bigint endpoint.
-    const aIsInfinite =
-      typeof interval.a.number === "number" && !isFinite(interval.a.number);
-    const bIsInfinite =
-      typeof interval.b.number === "number" && !isFinite(interval.b.number);
+    const aIsInfinite = typeof interval.a.number === "number" && !isFinite(interval.a.number);
+    const bIsInfinite = typeof interval.b.number === "number" && !isFinite(interval.b.number);
     const sameTypeOrInfinite =
       typeof interval.a.number === typeof interval.b.number || aIsInfinite || bIsInfinite;
     return (
@@ -690,11 +697,11 @@ export class Interval implements IInterval {
 
   /**
    * Parses a string representation of an interval into an IInterval object.
-   * 
+   *
    * Supports mathematical notation with brackets/parentheses for open/closed endpoints.
    * Numbers can include 'n' suffix for bigint (e.g., "10n").
    * Supports Infinity and -Infinity.
-   * 
+   *
    * @param interval - The string representation (e.g., "[1, 10)", "(5n, 20n]")
    * @returns An IInterval object
    * @throws Error if the string format is invalid
@@ -711,12 +718,12 @@ export class Interval implements IInterval {
     if ((startSymbol !== "(" && startSymbol !== "[") || (endSymbol !== ")" && endSymbol !== "]")) {
       throw new Error(`Invalid interval string: ${interval}`);
     }
-    
+
     const commaIndex = intervalTrimmed.indexOf(",");
     if (commaIndex === -1) {
       throw new Error(`Invalid interval string: missing comma in ${interval}`);
     }
-    
+
     const a = intervalTrimmed.slice(1, commaIndex).trim();
     const b = intervalTrimmed.slice(commaIndex + 1, intervalTrimmed.length - 1).trim();
 
@@ -738,7 +745,7 @@ export class Interval implements IInterval {
 
   /**
    * Converts a value to an IntervalNumber.
-   * 
+   *
    * @param x - Value to convert (IntervalNumber or NumericValue)
    * @param isClosed - Default closure if converting from NumericValue
    * @returns IntervalNumber instance
@@ -753,7 +760,7 @@ export class Interval implements IInterval {
 
   /**
    * Type guard to check if a value is an IntervalNumber.
-   * 
+   *
    * @param x - Value to check
    * @returns true if x is an IntervalNumber instance
    */
@@ -764,7 +771,7 @@ export class Interval implements IInterval {
 
 /**
  * Formats a numeric value as a string, appending 'n' suffix for bigints.
- * 
+ *
  * @param v - The numeric value to format (number or bigint)
  * @returns A string representation (e.g., "5", "10n", "Infinity")
  * @example

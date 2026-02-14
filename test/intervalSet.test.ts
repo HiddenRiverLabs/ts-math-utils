@@ -169,10 +169,10 @@ describe("IntervalSet", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(10) });
     intervalSet.addInterval({ a: new IntervalNumber(20), b: new IntervalNumber(30) });
-    
+
     // Create a gap in the first interval
     intervalSet.createIntervalGap({ a: new IntervalNumber(4), b: new IntervalNumber(6) });
-    
+
     // Should have 3 intervals: split first interval + untouched second interval
     expect(intervalSet.intervals.length).toBe(3);
     expect(intervalSet.intervals[0].toString()).toBe("[1, 4)");
@@ -675,7 +675,10 @@ describe("IntervalSet", () => {
 
     it("should create gap in infinite interval", () => {
       const intervalSet = new IntervalSet();
-      intervalSet.addInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(Infinity, false) });
+      intervalSet.addInterval({
+        a: new IntervalNumber(-Infinity),
+        b: new IntervalNumber(Infinity, false),
+      });
       intervalSet.createIntervalGap({ a: new IntervalNumber(0), b: new IntervalNumber(10) });
 
       expect(intervalSet.intervals.length).toBe(2);
@@ -686,7 +689,10 @@ describe("IntervalSet", () => {
     it("should chain intervals with Infinity boundaries", () => {
       const intervalSet = new IntervalSet();
       intervalSet.addInterval({ a: new IntervalNumber(0), b: new IntervalNumber(10) });
-      intervalSet.addInterval({ a: new IntervalNumber(20), b: new IntervalNumber(Infinity, false) });
+      intervalSet.addInterval({
+        a: new IntervalNumber(20),
+        b: new IntervalNumber(Infinity, false),
+      });
 
       intervalSet.chainIntervals();
 
@@ -697,7 +703,10 @@ describe("IntervalSet", () => {
 
     it("should detect gaps with Infinity interval", () => {
       const intervalSet = new IntervalSet();
-      intervalSet.addInterval({ a: new IntervalNumber(10), b: new IntervalNumber(Infinity, false) });
+      intervalSet.addInterval({
+        a: new IntervalNumber(10),
+        b: new IntervalNumber(Infinity, false),
+      });
 
       const gaps = intervalSet.getIntervalGaps({
         a: new IntervalNumber(-Infinity),
@@ -861,7 +870,10 @@ describe("IntervalSet", () => {
       const intervalSet = new IntervalSet();
 
       for (let i = 0; i < 100; i++) {
-        intervalSet.addInterval({ a: new IntervalNumber(i * 10), b: new IntervalNumber(i * 10 + 5) });
+        intervalSet.addInterval({
+          a: new IntervalNumber(i * 10),
+          b: new IntervalNumber(i * 10 + 5),
+        });
       }
 
       expect(intervalSet.intervals.length).toBe(100);
@@ -999,7 +1011,7 @@ describe("IntervalSet construction with options", () => {
     expect(intervalSet.mergeAddedInterval).toBe(true);
   });
 
-  it('should sort intervals by minimum value', () => {
+  it("should sort intervals by minimum value", () => {
     const intervals = [
       new Interval({ a: new IntervalNumber(5), b: new IntervalNumber(10) }),
       new Interval({ a: new IntervalNumber(1), b: new IntervalNumber(3) }),
@@ -1011,17 +1023,17 @@ describe("IntervalSet construction with options", () => {
     expect(intervals[2].a.number).toBe(5);
   });
 
-  it('should sort intervals with equal min so that closed comes before open', () => {
+  it("should sort intervals with equal min so that closed comes before open", () => {
     const intervals = [
       new Interval({ a: new IntervalNumber(1, false), b: new IntervalNumber(2) }), // (1, 2]
-      new Interval({ a: new IntervalNumber(1, true), b: new IntervalNumber(2) }),  // [1, 2]
+      new Interval({ a: new IntervalNumber(1, true), b: new IntervalNumber(2) }), // [1, 2]
     ];
     IntervalSet.sort(intervals);
-    expect(intervals[0].a.isClosed).toBe(true);  // [1, 2] comes before (1, 2]
+    expect(intervals[0].a.isClosed).toBe(true); // [1, 2] comes before (1, 2]
     expect(intervals[1].a.isClosed).toBe(false);
   });
 
-  it('should preserve order if min and isClosed are equal', () => {
+  it("should preserve order if min and isClosed are equal", () => {
     const intervals = [
       new Interval({ a: new IntervalNumber(1, true), b: new IntervalNumber(2) }),
       new Interval({ a: new IntervalNumber(1, true), b: new IntervalNumber(3) }),
@@ -1031,74 +1043,92 @@ describe("IntervalSet construction with options", () => {
     expect(intervals[1].b.number).toBe(3);
   });
 
-  it('should sort intervals with the same min -Infinity so that closed comes before open', () => {
+  it("should sort intervals with the same min -Infinity so that closed comes before open", () => {
     const intervals = [
       new Interval({ a: new IntervalNumber(-Infinity, false), b: new IntervalNumber(10) }), // (-Infinity, 10]
-      new Interval({ a: new IntervalNumber(-Infinity, true), b: new IntervalNumber(20) }),  // [-Infinity, 20]
+      new Interval({ a: new IntervalNumber(-Infinity, true), b: new IntervalNumber(20) }), // [-Infinity, 20]
     ];
     IntervalSet.sort(intervals);
-    expect(intervals[0].a.isClosed).toBe(true);  // [-Infinity, 20] comes before (-Infinity, 10]
+    expect(intervals[0].a.isClosed).toBe(true); // [-Infinity, 20] comes before (-Infinity, 10]
     expect(intervals[1].a.isClosed).toBe(false);
   });
 
-  it('should hit the a.min.isClosed && !b.min.isClosed branch in sort', () => {
+  it("should hit the a.min.isClosed && !b.min.isClosed branch in sort", () => {
     const intervals = [
-      new Interval({ a: new IntervalNumber(1, true), b: new IntervalNumber(2) }),  // [1, 2]
+      new Interval({ a: new IntervalNumber(1, true), b: new IntervalNumber(2) }), // [1, 2]
       new Interval({ a: new IntervalNumber(1, false), b: new IntervalNumber(2) }), // (1, 2]
     ];
     IntervalSet.sort(intervals);
-    expect(intervals[0].a.isClosed).toBe(true);  // [1, 2] comes before (1, 2]
+    expect(intervals[0].a.isClosed).toBe(true); // [1, 2] comes before (1, 2]
     expect(intervals[1].a.isClosed).toBe(false);
   });
 
-  it('should return the gap before, between, and after intervals within a given interval', () => {
+  it("should return the gap before, between, and after intervals within a given interval", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(2), b: new IntervalNumber(4) });
     intervalSet.addInterval({ a: new IntervalNumber(6), b: new IntervalNumber(8) });
 
     // The interval [1, 10] should have gaps: [1,2), (4,6), (8,10]
-    const gaps = intervalSet.getIntervalGaps({ a: new IntervalNumber(1), b: new IntervalNumber(10) });
+    const gaps = intervalSet.getIntervalGaps({
+      a: new IntervalNumber(1),
+      b: new IntervalNumber(10),
+    });
     expect(gaps.length).toBe(3);
-    expect(gaps[0].toString()).toBe('[1, 2)');
-    expect(gaps[1].toString()).toBe('(4, 6)');
-    expect(gaps[2].toString()).toBe('(8, 10]');
+    expect(gaps[0].toString()).toBe("[1, 2)");
+    expect(gaps[1].toString()).toBe("(4, 6)");
+    expect(gaps[2].toString()).toBe("(8, 10]");
   });
 
-  it('should return gaps when intervals overlap', () => {
+  it("should return gaps when intervals overlap", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5) });
 
     // The interval [2, 6] should have gap: (5, 6]
-    const gaps = intervalSet.getIntervalGaps({ a: new IntervalNumber(2), b: new IntervalNumber(6) });
+    const gaps = intervalSet.getIntervalGaps({
+      a: new IntervalNumber(2),
+      b: new IntervalNumber(6),
+    });
     expect(gaps.length).toBe(1);
-    expect(gaps[0].toString()).toBe('(5, 6]');
+    expect(gaps[0].toString()).toBe("(5, 6]");
     // The interval [-2, 3] should have gap: [-2, 1)
-    const gaps2 = intervalSet.getIntervalGaps({ a: new IntervalNumber(-2), b: new IntervalNumber(3) });
+    const gaps2 = intervalSet.getIntervalGaps({
+      a: new IntervalNumber(-2),
+      b: new IntervalNumber(3),
+    });
     expect(gaps2.length).toBe(1);
-    expect(gaps2[0].toString()).toBe('[-2, 1)');
+    expect(gaps2[0].toString()).toBe("[-2, 1)");
   });
 
-  it('should return the whole interval as a gap if there is no overlap', () => {
+  it("should return the whole interval as a gap if there is no overlap", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(20), b: new IntervalNumber(30) });
 
     // The interval [1, 10] does not overlap with [20, 30]
-    const gaps = intervalSet.getIntervalGaps({ a: new IntervalNumber(1), b: new IntervalNumber(10) });
+    const gaps = intervalSet.getIntervalGaps({
+      a: new IntervalNumber(1),
+      b: new IntervalNumber(10),
+    });
     expect(gaps.length).toBe(1);
-    expect(gaps[0].toString()).toBe('[1, 10]');
+    expect(gaps[0].toString()).toBe("[1, 10]");
   });
 
-  it('should return no gaps if the interval is fully covered', () => {
+  it("should return no gaps if the interval is fully covered", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(10) });
 
-    const gaps = intervalSet.getIntervalGaps({ a: new IntervalNumber(1), b: new IntervalNumber(10) });
+    const gaps = intervalSet.getIntervalGaps({
+      a: new IntervalNumber(1),
+      b: new IntervalNumber(10),
+    });
     expect(gaps.length).toBe(0);
-    const gaps2 = intervalSet.getIntervalGaps({ a: new IntervalNumber(5), b: new IntervalNumber(7) });
+    const gaps2 = intervalSet.getIntervalGaps({
+      a: new IntervalNumber(5),
+      b: new IntervalNumber(7),
+    });
     expect(gaps2.length).toBe(0);
   });
 
-  it('should return gaps when intervals are adjacent', () => {
+  it("should return gaps when intervals are adjacent", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5, false) });
     intervalSet.addInterval({ a: new IntervalNumber(5), b: new IntervalNumber(10) });
@@ -1107,7 +1137,7 @@ describe("IntervalSet construction with options", () => {
     expect(gaps.length).toBe(0); // No gaps since they are adjacent
   });
 
-  it('should return gaps when intervals are adjacent with mergeAddedInterval false', () => {
+  it("should return gaps when intervals are adjacent with mergeAddedInterval false", () => {
     const intervalSet = new IntervalSet({ options: { mergeAddedInterval: false } });
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5, false) });
     intervalSet.addInterval({ a: new IntervalNumber(5), b: new IntervalNumber(10) });
@@ -1116,7 +1146,7 @@ describe("IntervalSet construction with options", () => {
     expect(gaps.length).toBe(0); // No gaps since they are adjacent
   });
 
-  it('should return gaps when intervals are adjacent with mergeAddedInterval true', () => {
+  it("should return gaps when intervals are adjacent with mergeAddedInterval true", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5, false) });
     intervalSet.addInterval({ a: new IntervalNumber(5), b: new IntervalNumber(10) });
@@ -1125,11 +1155,11 @@ describe("IntervalSet construction with options", () => {
     expect(gaps.length).toBe(0); // No gaps since they are adjacent
   });
 
-  it('should remove intervals that are fully contained within another in chainIntervals (else branch)', () => {
+  it("should remove intervals that are fully contained within another in chainIntervals (else branch)", () => {
     const intervalSet = new IntervalSet({ options: { mergeAddedInterval: false } });
     // Add an interval fully containing another
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(10) }); // [1, 10]
-    intervalSet.addInterval({ a: new IntervalNumber(3), b: new IntervalNumber(5) });  // [3, 5]
+    intervalSet.addInterval({ a: new IntervalNumber(3), b: new IntervalNumber(5) }); // [3, 5]
 
     // Before chaining, both intervals exist
     expect(intervalSet.intervals.length).toBe(2);
@@ -1138,14 +1168,14 @@ describe("IntervalSet construction with options", () => {
 
     // After chaining, the contained interval should be removed
     expect(intervalSet.intervals.length).toBe(1);
-    expect(intervalSet.intervals[0].toString()).toBe('[1, 10]');
+    expect(intervalSet.intervals[0].toString()).toBe("[1, 10]");
   });
 
-  it('should set intervals where next.max.number > current.max.number in chainIntervals (else branch)', () => {
+  it("should set intervals where next.max.number > current.max.number in chainIntervals (else branch)", () => {
     const intervalSet = new IntervalSet({ options: { mergeAddedInterval: false } });
     // Add intervals where the next's max is less than the current's max
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5) }); // [1, 5]
-    intervalSet.addInterval({ a: new IntervalNumber(2), b: new IntervalNumber(10) });  // [2, 10]
+    intervalSet.addInterval({ a: new IntervalNumber(2), b: new IntervalNumber(10) }); // [2, 10]
 
     intervalSet.chainIntervals();
 
@@ -1614,7 +1644,10 @@ describe("IntervalSet construction with options", () => {
 
     it("should create gap in infinite interval", () => {
       const intervalSet = new IntervalSet();
-      intervalSet.addInterval({ a: new IntervalNumber(-Infinity), b: new IntervalNumber(Infinity, false) });
+      intervalSet.addInterval({
+        a: new IntervalNumber(-Infinity),
+        b: new IntervalNumber(Infinity, false),
+      });
       intervalSet.createIntervalGap({ a: new IntervalNumber(0), b: new IntervalNumber(10) });
 
       expect(intervalSet.intervals.length).toBe(2);
@@ -1625,7 +1658,10 @@ describe("IntervalSet construction with options", () => {
     it("should chain intervals with Infinity boundaries", () => {
       const intervalSet = new IntervalSet();
       intervalSet.addInterval({ a: new IntervalNumber(0), b: new IntervalNumber(10) });
-      intervalSet.addInterval({ a: new IntervalNumber(20), b: new IntervalNumber(Infinity, false) });
+      intervalSet.addInterval({
+        a: new IntervalNumber(20),
+        b: new IntervalNumber(Infinity, false),
+      });
 
       intervalSet.chainIntervals();
 
@@ -1636,7 +1672,10 @@ describe("IntervalSet construction with options", () => {
 
     it("should detect gaps with Infinity interval", () => {
       const intervalSet = new IntervalSet();
-      intervalSet.addInterval({ a: new IntervalNumber(10), b: new IntervalNumber(Infinity, false) });
+      intervalSet.addInterval({
+        a: new IntervalNumber(10),
+        b: new IntervalNumber(Infinity, false),
+      });
 
       const gaps = intervalSet.getIntervalGaps({
         a: new IntervalNumber(-Infinity),
@@ -1800,7 +1839,10 @@ describe("IntervalSet construction with options", () => {
       const intervalSet = new IntervalSet();
 
       for (let i = 0; i < 100; i++) {
-        intervalSet.addInterval({ a: new IntervalNumber(i * 10), b: new IntervalNumber(i * 10 + 5) });
+        intervalSet.addInterval({
+          a: new IntervalNumber(i * 10),
+          b: new IntervalNumber(i * 10 + 5),
+        });
       }
 
       expect(intervalSet.intervals.length).toBe(100);

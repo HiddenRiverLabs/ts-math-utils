@@ -1,6 +1,6 @@
 {
   "name": "ts-math-utils",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Math-based objects not included in JS, built in TS.",
   "keywords": [
     "Infinity",

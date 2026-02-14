@@ -50,10 +50,9 @@ export function range(
         // Handle Infinity properly - don't convert to bigint
         const startBig = start === Infinity || start === -Infinity ? start : BigInt(start);
         const endBig = end === Infinity || end === -Infinity ? end : BigInt(end);
-        const absStepBig = typeof step === "bigint" 
-          ? (step < 0n ? -step : step)
-          : BigInt(Math.abs(step));
-        
+        const absStepBig =
+          typeof step === "bigint" ? (step < 0n ? -step : step) : BigInt(Math.abs(step));
+
         // Use Interval.compareNumeric for type-safe comparison
         const comparison = Interval.compareNumeric(startBig, endBig);
         const ascending = comparison < 0;
@@ -71,16 +70,16 @@ export function range(
         while (true) {
           try {
             const cmp = Interval.compareNumeric(current, endBig);
-            
+
             // Check if we've passed the end
             if (ascending && cmp > 0) break;
             if (!ascending && cmp < 0) break;
-            
+
             // Check if we're at the end boundary
             if (cmp === 0 && !endClosed) break;
-            
+
             yield current;
-            
+
             // Increment (if current is bigint)
             if (typeof current === "bigint") {
               current += actualStep;
@@ -88,7 +87,7 @@ export function range(
               // current is Infinity - infinite iteration
               break;
             }
-          } catch (error) {
+          } catch {
             // compareNumeric throws if types are incompatible
             break;
           }
