@@ -1,3 +1,4 @@
-export type { IInterval } from './interval.ts';
-export { IntervalNumber, Interval } from './interval.ts';
-export { IntervalSet, IntervalSetOptions } from './intervalSet.ts';
+export type { IInterval, NumericValue } from "./interval.ts";
+export { IntervalNumber, Interval, formatNumericValue } from "./interval.ts";
+export { IntervalSet, IntervalSetOptions, safeMin, safeMax } from "./intervalSet.ts";
+export { range } from "./range.ts";

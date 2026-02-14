@@ -2,27 +2,35 @@
 
 Math-based objects not included in JS, built in TS.
 
+## Installation
+
+```bash
+npm install ts-math-utils
+```
+
 ## Intervals
 
-The `Interval` class represents a mathematical interval with flexible endpoints and inclusivity.
+The `Interval` class represents a mathematical interval with flexible endpoints and inclusivity. Supports number and bigint.
+
+**Key Types:**
+- `IntervalNumber` — Wraps a numeric value with an `isClosed` flag (true = inclusive `[]`, false = exclusive `()`).
+- `IInterval` — Object with `a` and `b` endpoints and optional `name`.
 
 **Features:**
+
 - Create an `Interval` from an `IInterval` object or a string in mathematical notation (e.g., `[1, 5)`, `(2, 10]`).
 - Endpoints can be open or closed (`[]` for inclusive, `()` for exclusive).
 - Supports infinite endpoints (`-Infinity`, `Infinity`).
 - `.toString()` returns the interval in mathematical notation.
 - Static methods:
+  - `Interval.validInterval(x: IInterval)` — Validates an IInterval type.
   - `Interval.validIntervalString(str)` — Validates a string as interval notation.
   - `Interval.toInterval(str)` — Parses a string into an `Interval` instance.
 - Methods for containment and overlap:
   - `.containsNumber(x)` — Checks if a number is within the interval.
-  - `.containsMin(intervalNumber)` — Checks if an `IntervalNumber` is a valid minimum within the interval.
-  - `.containsMax(intervalNumber)` — Checks if an `IntervalNumber` is a valid maximum within the interval.
   - `.contains(x)` — Checks if an `IntervalNumber` or another `Interval` is fully contained.
   - `.overlaps(interval)` — Checks if two intervals overlap.
-- Equality and copying:
-  - `.equals(otherInterval)` — Checks if two intervals are equal.
-  - `.clone()` — Returns a copy of the interval.
+  - `.isEmpty()` — Checks if the interval is empty.
 - Properties:
   - `.min` and `.max` — Get or set the minimum and maximum endpoints as `IntervalNumber`.
   - `.a` and `.b` — Get or set the original endpoints.
@@ -35,6 +43,7 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
 The `IntervalSet` class manages a collection of `Interval` objects with advanced set operations.
 
 **Features:**
+
 - Add, remove, and clear intervals:
   - `.addInterval(interval)` — Add an interval (object or string).
   - `.removeInterval(interval)` — Remove an interval (object or string).
@@ -82,7 +91,35 @@ set.chainIntervals()
 console.log(set.toString()); // "[1, 5), [5, 15)"
 ```
 
----
+## Range
+
+The `range()` function creates an iterable for a specified `IInterval` with a configurable step size. Supports number and bigint.
+
+**Features:**
+
+- Accepts an `IInterval` or string representation of an `Interval`.
+- Default step is `1`.
+- Loop forever by passing `Infinity` as an endpoint.
+- If either endpoint is bigint, all values are evaluated and yielded as bigint.
+
+## Example Usage
+
+```typescript
+import { NumericValue, range } from 'ts-math-utils';
+
+const result: NumericValue[] = [];
+for (const n of range('[0n, Infinity)')) {
+    result.push(n);
+    if (n >= 5n) break; // Limit to 5
+}
+console.log(result); // [0n, 1n, 2n, 3n, 4n, 5n]
+
+const result2: NumericValue[] = [];
+for (const n of range('[0, 0.5]', 0.1)) {
+    result2.push(n);
+}
+console.log(result2); // [0, 0.1, 0.2, 0.3, 0.4, 0.5]
+```
 
 ## Testing
 

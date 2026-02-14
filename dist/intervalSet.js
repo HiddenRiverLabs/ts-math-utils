@@ -1,4 +1,4 @@
-import { Interval, IntervalNumber } from './interval';
+import { Interval, IntervalNumber } from "./interval";
 /**
  * Represents interval set options.
  * mergeAddedInterval is optional and defaults to true.
@@ -202,7 +202,8 @@ export class IntervalSet {
                 const current = intervals[i];
                 const next = intervals[i + 1];
                 // if they don't overlap, create a gap interval
-                if (!current.overlaps(next) && (current.max.number !== next.min.number || (!current.max.isClosed && !next.min.isClosed))) {
+                if (!current.overlaps(next) &&
+                    (current.max.number !== next.min.number || (!current.max.isClosed && !next.min.isClosed))) {
                     // Create a gap interval
                     gaps.push(new Interval({
                         a: new IntervalNumber(current.max.number, !current.max.isClosed),
@@ -224,7 +225,10 @@ export class IntervalSet {
         // use internal intervals array to properly update the intervals
         const overlappingIntervals = this._intervals.filter((r) => r.overlaps(intervalObject));
         if (overlappingIntervals.length > 0) {
-            const overlappingIntervalSet = new IntervalSet({ intervals: overlappingIntervals, options: { mergeAddedInterval: false } });
+            const overlappingIntervalSet = new IntervalSet({
+                intervals: overlappingIntervals,
+                options: { mergeAddedInterval: false },
+            });
             // get the overlapping intervals that contain the given interval's max but not min, and update their max
             const minIntervals = this._intervals.filter((r) => intervalObject.containsMax(r.max) && !intervalObject.containsMin(r.min));
             for (const minInterval of minIntervals) {
@@ -238,10 +242,17 @@ export class IntervalSet {
                 overlappingIntervalSet.removeInterval(maxInterval);
             }
             // if there's only 1 overlapping interval and it contains the given interval, then split the overlapping interval into 2 intervals
-            if (overlappingIntervalSet.intervals.length === 1 && overlappingIntervalSet.intervals[0].contains(intervalObject)) {
+            if (overlappingIntervalSet.intervals.length === 1 &&
+                overlappingIntervalSet.intervals[0].contains(intervalObject)) {
                 this.clear();
-                this.addInterval(new Interval({ a: overlappingIntervalSet.intervals[0].min, b: new IntervalNumber(intervalObject.min.number, !intervalObject.min.isClosed) }));
-                this.addInterval(new Interval({ a: new IntervalNumber(intervalObject.max.number, !intervalObject.max.isClosed), b: overlappingIntervalSet.intervals[0].max }));
+                this.addInterval(new Interval({
+                    a: overlappingIntervalSet.intervals[0].min,
+                    b: new IntervalNumber(intervalObject.min.number, !intervalObject.min.isClosed),
+                }));
+                this.addInterval(new Interval({
+                    a: new IntervalNumber(intervalObject.max.number, !intervalObject.max.isClosed),
+                    b: overlappingIntervalSet.intervals[0].max,
+                }));
             }
             else {
                 // remove the overlapping intervals that are contained in the given interval
@@ -306,6 +317,6 @@ export class IntervalSet {
      * Example: "[1, 5), (10, 15]"
      */
     toString() {
-        return this._intervals.map(interval => interval.toString()).join(', ');
+        return this._intervals.map((interval) => interval.toString()).join(", ");
     }
 }
