@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { IntervalSet, IntervalSetOptions } from "../src/intervalSet";
 import { Interval, IntervalNumber } from "../src/interval";
 

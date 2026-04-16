@@ -692,8 +692,6 @@ describe("Interval", () => {
     });
 
     it("should return true for intervals where min equals max with open endpoints", () => {
-      // This is prevented at construction, but we can test the logic
-      const i1 = new Interval("[5, 10]");
       // Access private isEmpty directly isn't possible, so test via intersection
       const i2 = new Interval("[5, 5]"); // Only valid if both closed
       expect(i2.isEmpty()).toBe(false);
@@ -1255,16 +1253,6 @@ describe("Interval", () => {
       const i2 = new Interval("[50n, 200n]");
       const result = Interval.intersects(i1, i2);
       expect(result?.toString()).toBe("[50n, 100n]");
-    });
-
-    it("should successfully compare number with Infinity when number is Infinity", () => {
-      // Tests path: typeof a === "number" && typeof b === "bigint" && !isFinite(a)
-      // where a === Infinity
-      const i1 = new Interval("[1, Infinity)");
-      const i2 = new Interval("[5n, 100n]");
-      // This actually tests if the comparison succeeds
-      // but type check should prevent mixing number and bigint
-      expect(true).toBe(true);
     });
 
     it("should compare -Infinity with bigint correctly", () => {

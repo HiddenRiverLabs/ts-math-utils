@@ -7,8 +7,14 @@ Math-based objects not included in JS, built in TS.
 
 ## Installation
 
+**npm:**
 ```bash
 npm install ts-math-utils
+```
+
+**JSR:**
+```bash
+npx jsr add @hrl/ts-math-utils
 ```
 
 ## Intervals
@@ -27,15 +33,22 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
 - Supports infinite endpoints (`-Infinity`, `Infinity`).
 - `.toString()` returns the interval in mathematical notation.
 - Static methods:
-  - `Interval.validInterval(x: IInterval)` — Validates an IInterval type
+  - `Interval.validInterval(x: IInterval)` — Validates an IInterval type.
   - `Interval.validIntervalString(str)` — Validates a string as interval notation.
-  - `Interval.toInterval(str)` — Parses a string into an `Interval` instance.
+  - `Interval.toInterval(str)` — Parses a string into an `IInterval` object.
+  - `Interval.intersects(i1, i2)` — Returns the intersection of two intervals, or `null` if they are disjoint.
+  - `Interval.union(i1, i2)` — Returns the union of two overlapping or adjacent intervals (throws if disjoint).
+  - `Interval.mergeIntervals(a, b)` — Alias for `union`; merges two overlapping or adjacent intervals.
+  - `Interval.intervalType(interval)` — Returns `'number'` or `'bigint'` based on the interval's finite endpoints.
+  - `Interval.compareNumeric(a, b)` — Compares two `NumericValue`s; returns `-1`, `0`, or `1`. Supports bigint with `Infinity`.
+  - `Interval.isIntervalNumber(x)` — Type guard that returns `true` if `x` is an `IntervalNumber`.
 - Methods for containment and overlap:
   - `.containsNumber(x)` — Checks if a number is within the interval.
   - `.containsMin(x)` — Checks if an `IntervalNumber` is within the interval, considering it as a minimum bound.
   - `.containsMax(x)` — Checks if an `IntervalNumber` is within the interval, considering it as a maximum bound.
   - `.contains(x)` — Checks if an `IntervalNumber` or another `Interval` is fully contained.
   - `.overlaps(interval)` — Checks if two intervals overlap.
+  - `.compliments(interval)` — Checks if two intervals touch with opposite closure (e.g., `[1, 5)` and `[5, 10]`), meaning they can be merged without gaps or overlaps.
   - `.isEmpty()` — Checks if the interval is empty.
 - Equality and copying:
   - `.equals(other: IntervalNumber)` — Checks if two `IntervalNumber`s are equal.
@@ -47,6 +60,11 @@ The `Interval` class represents a mathematical interval with flexible endpoints 
 ## Interval Sets
 
 The `IntervalSet` class manages a collection of `Interval` objects with advanced set operations. Supports number and bigint.
+
+**Configuration:**
+
+`IntervalSetOptions` controls set behavior:
+- `mergeAddedInterval: boolean` (default `true`) — When `true`, overlapping or adjacent intervals are automatically merged when added.
 
 **Features:**
 
@@ -73,11 +91,11 @@ The `IntervalSet` class manages a collection of `Interval` objects with advanced
 ## Example Usage
 
 ```typescript
-import { Interval, IntervalNumber, IntervalSet } from 'ts-math-utils';
+import { Interval, IntervalNumber, IntervalSet } from "ts-math-utils";
 
 // Create intervals
 const i1 = new Interval({ a: new IntervalNumber(1), b: new IntervalNumber(5, false) }); // [1, 5)
-const i2 = Interval.toInterval('[10, 15)'); // [10, 15)
+const i2 = Interval.toInterval("[10, 15)"); // [10, 15)
 
 // Work with interval sets
 const set = new IntervalSet();
@@ -88,10 +106,10 @@ console.log(set.toString()); // "[1, 5), [10, 15)"
 
 // Find gaps
 const gaps = set.getIntervalGaps();
-console.log(gaps.map(gap => gap.toString())); // e.g., [5, 10)
+console.log(gaps.map((gap) => gap.toString())); // e.g., [5, 10)
 
 // Chain intervals
-set.chainIntervals()
+set.chainIntervals();
 console.log(set.toString()); // "[1, 5), [5, 15)"
 ```
 
@@ -105,25 +123,30 @@ The `range()` function creates an iterable for a specified `IInterval` with a co
 - Default step is `1`.
 - Loop forever by passing `Infinity` as an endpoint.
 - If either endpoint is bigint, all values are evaluated and yielded as bigint.
+- The step sign is ignored; iteration direction is always determined by the interval's `a` → `b` endpoint order.
 
 ## Example Usage
 
 ```typescript
-import { NumericValue, range } from 'ts-math-utils';
+import { NumericValue, range } from "ts-math-utils";
 
 const result: NumericValue[] = [];
-for (const n of range('[0n, Infinity)')) {
-    result.push(n);
-    if (n >= 5n) break; // Limit to 5
+for (const n of range("[0n, Infinity)")) {
+  result.push(n);
+  if (n >= 5n) break; // Limit to 5
 }
 console.log(result); // [0n, 1n, 2n, 3n, 4n, 5n]
 
 const result2: NumericValue[] = [];
-for (const n of range('[0, 0.5]', 0.1)) {
-    result2.push(n);
+for (const n of range("[0, 0.5]", 0.1)) {
+  result2.push(n);
 }
 console.log(result2); // [0, 0.1, 0.2, 0.3, 0.4, 0.5]
 ```
+
+## Utilities
+
+- `formatNumericValue(v: NumericValue): string` — Formats a number or bigint as a string. Appends `n` suffix for bigints (e.g., `5n` → `"5n"`, `Infinity` → `"Infinity"`).
 
 ## Testing
 
