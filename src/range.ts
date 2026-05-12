@@ -16,6 +16,7 @@ function getDecimalPlaces(x: number): number {
  * @param interval The interval to iterate over, can be an `IInterval` object or a string like "[1, 10]".
  * @param step The step size to increment by, defaults to 1. Can be a number or bigint.
  * @returns An iterable generator that yields numbers or bigints within the specified interval.
+ * @throws Error if the interval starts at Infinity or -Infinity because iteration cannot begin there.
  */
 export function range(
   interval: IInterval | string,
@@ -33,6 +34,15 @@ export function range(
       const end = intvl.b.number;
       const startClosed = intvl.a.isClosed;
       const endClosed = intvl.b.isClosed;
+      const startIsInfinite = typeof start === "number" && !isFinite(start);
+
+      if (startIsInfinite) {
+        throw new Error(
+          startClosed
+            ? "Cannot iterate from Infinity start endpoint"
+            : "Cannot iterate from open Infinity endpoint",
+        );
+      }
 
       // If any value is bigint, use bigint math
       if (typeof start === "bigint" || typeof end === "bigint" || typeof step === "bigint") {
@@ -61,9 +71,6 @@ export function range(
         let current = startBig;
         if (!startClosed && typeof current === "bigint") {
           current += actualStep;
-        } else if (!startClosed && typeof current === "number") {
-          // startBig is Infinity or -Infinity, can't iterate
-          throw new Error("Cannot iterate from open Infinity endpoint");
         }
 
         // Iterate using type-safe comparison

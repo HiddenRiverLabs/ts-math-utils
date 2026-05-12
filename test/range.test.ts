@@ -221,6 +221,24 @@ describe("range", () => {
       }).toThrow("Cannot iterate from open Infinity endpoint");
     });
 
+    it("should throw for closed Infinity start endpoint", () => {
+      expect(() => {
+        const result: NumericValue[] = [];
+        for (const n of range("[Infinity, 100]", -1)) {
+          result.push(n);
+        }
+      }).toThrow("Cannot iterate from Infinity start endpoint");
+    });
+
+    it("should throw for closed -Infinity start endpoint", () => {
+      expect(() => {
+        const result: NumericValue[] = [];
+        for (const n of range("[-Infinity, 100]", 1)) {
+          result.push(n);
+        }
+      }).toThrow("Cannot iterate from Infinity start endpoint");
+    });
+
     it("should handle descending to -Infinity", () => {
       const result: NumericValue[] = [];
       for (const n of range("[10, -Infinity)", -1)) {

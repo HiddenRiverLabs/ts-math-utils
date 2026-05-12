@@ -1,4 +1,4 @@
-import { IInterval, Interval, IntervalNumber } from "./interval";
+import { IInterval, Interval, IntervalNumber, NumericValue } from "./interval";
 
 /**
  * Configuration options for IntervalSet behavior.
@@ -538,7 +538,7 @@ export class IntervalSet {
    * const none = set.getIntervalsContaining(18);
    * console.log(none.length); // 0 (no intervals contain 18)
    */
-  getIntervalsContaining(x: number): Interval[] {
+  getIntervalsContaining(x: NumericValue): Interval[] {
     return this._intervals.filter((r: Interval): boolean => r.containsNumber(x));
   }
 

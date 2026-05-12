@@ -138,6 +138,15 @@ describe("IntervalSet", () => {
     expect(intervals[0].toString()).toBe("[1, 5]");
   });
 
+  it("should return intervals containing a specific bigint", () => {
+    const intervalSet = new IntervalSet();
+    intervalSet.addInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(5n) });
+
+    const intervals = intervalSet.getIntervalsContaining(3n);
+    expect(intervals.length).toBe(1);
+    expect(intervals[0].toString()).toBe("[1n, 5n]");
+  });
+
   it("should return no intervals if the number is not contained", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5) });

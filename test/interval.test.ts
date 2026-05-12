@@ -759,6 +759,18 @@ describe("Interval", () => {
       expect(Interval.intersects(new Interval("[1, 10]"), new Interval("[5n, 15n]"))).toBeNull();
     });
 
+    it("should return null when max endpoints are finite mixed types", () => {
+      expect(
+        Interval.intersects(new Interval("[0n, 100n]"), new Interval("[-Infinity, 50]")),
+      ).toBeNull();
+    });
+
+    it("should return null when the resulting bounds would mix finite number and bigint", () => {
+      expect(
+        Interval.intersects(new Interval("[-Infinity, 100n]"), new Interval("[50, Infinity)")),
+      ).toBeNull();
+    });
+
     it("should handle Infinity", () => {
       expect(
         Interval.intersects(

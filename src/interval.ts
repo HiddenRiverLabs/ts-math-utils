@@ -395,6 +395,10 @@ export class Interval implements IInterval {
           : new IntervalNumber(i1.min.number, i1.min.isClosed && i2.min.isClosed);
 
     // Intersection upper bound is the lesser of the two maxes
+    if (!Interval.areTypesCompatible(i1.max.number, i2.max.number)) {
+      return null;
+    }
+
     const cmpMax = Interval.compareNumeric(i1.max.number, i2.max.number);
     const newMax =
       cmpMax < 0
@@ -404,6 +408,10 @@ export class Interval implements IInterval {
           : new IntervalNumber(i1.max.number, i1.max.isClosed && i2.max.isClosed);
 
     // Check if the result would be empty (min > max)
+    if (!Interval.areTypesCompatible(newMin.number, newMax.number)) {
+      return null;
+    }
+
     const cmpResult = Interval.compareNumeric(newMin.number, newMax.number);
     if (cmpResult > 0) return null;
 

@@ -29,6 +29,7 @@
   },
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "lint": "oxlint 'src/**/*.ts' 'test/**/*.ts'",
     "format": "oxfmt --write .",
