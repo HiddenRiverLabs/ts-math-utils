@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { NumericValue, Interval } from "../src/interval";
 import { range } from "../src/range";
 

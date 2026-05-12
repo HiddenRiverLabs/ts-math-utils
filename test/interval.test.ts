@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { Interval, IntervalNumber } from "../src/interval";
 
 describe("Interval", () => {
