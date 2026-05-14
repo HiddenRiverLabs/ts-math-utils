@@ -210,7 +210,7 @@ describe("range", () => {
         for (const n of range("(Infinity, 100n)", -1n)) {
           result.push(n);
         }
-      }).toThrow("Cannot iterate from open Infinity endpoint");
+      }).toThrow("Cannot iterate from open non-finite start endpoint: Infinity");
     });
 
     it("should throw for open -Infinity start endpoint", () => {
@@ -219,7 +219,7 @@ describe("range", () => {
         for (const n of range("(-Infinity, 100n)", 1n)) {
           result.push(n);
         }
-      }).toThrow("Cannot iterate from open Infinity endpoint");
+      }).toThrow("Cannot iterate from open non-finite start endpoint: -Infinity");
     });
 
     it("should throw for closed Infinity start endpoint", () => {
@@ -228,7 +228,7 @@ describe("range", () => {
         for (const n of range("[Infinity, 100]", -1)) {
           result.push(n);
         }
-      }).toThrow("Cannot iterate from Infinity start endpoint");
+      }).toThrow("Cannot iterate from non-finite start endpoint: Infinity");
     });
 
     it("should throw for closed -Infinity start endpoint", () => {
@@ -237,7 +237,7 @@ describe("range", () => {
         for (const n of range("[-Infinity, 100]", 1)) {
           result.push(n);
         }
-      }).toThrow("Cannot iterate from Infinity start endpoint");
+      }).toThrow("Cannot iterate from non-finite start endpoint: -Infinity");
     });
 
     it("should handle descending to -Infinity", () => {
