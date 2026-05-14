@@ -27,10 +27,14 @@
   "directories": {
     "test": "test"
   },
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "prepack": "npm run build",
     "lint": "oxlint 'src/**/*.ts' 'test/**/*.ts'",
     "format": "oxfmt --write .",
     "build": "tsc",
