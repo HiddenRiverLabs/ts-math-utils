@@ -39,8 +39,8 @@ export function range(
       if (startIsInfinite) {
         throw new Error(
           startClosed
-            ? "Cannot iterate from Infinity start endpoint"
-            : "Cannot iterate from open Infinity endpoint",
+            ? `Cannot iterate from non-finite start endpoint: ${start}`
+            : `Cannot iterate from open non-finite start endpoint: ${start}`,
         );
       }
 
