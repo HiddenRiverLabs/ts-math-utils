@@ -528,7 +528,8 @@ export class IntervalSet {
    * Finds all intervals in the set that contain the given numeric value.
    *
    * @param x - The numeric value to check (number or bigint)
-   * @returns Array of intervals containing x (empty array if none)
+   * @returns Array of intervals containing x (empty array if none). Intervals
+   * with incompatible numeric types are treated as non-matches.
    * @example
    * const set = new IntervalSet({ intervals: ['[1, 10]', '[5, 15]', '[20, 30]'] });
    * const containing = set.getIntervalsContaining(7);
@@ -539,7 +540,12 @@ export class IntervalSet {
    * console.log(none.length); // 0 (no intervals contain 18)
    */
   getIntervalsContaining(x: NumericValue): Interval[] {
-    return this._intervals.filter((r: Interval): boolean => r.containsNumber(x));
+    return this._intervals.filter(
+      (r: Interval): boolean =>
+        Interval.areTypesCompatible(x, r.min.number) &&
+        Interval.areTypesCompatible(x, r.max.number) &&
+        r.containsNumber(x),
+    );
   }
 
   /**

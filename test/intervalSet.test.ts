@@ -643,14 +643,23 @@ describe("IntervalSet", () => {
       expect(intervalSet.intervals[1].toString()).toBe("[5n, 15n]");
     });
 
-    it("should handle containsNumber with bigint intervals using number parameter", () => {
+    it("should treat incompatible bigint intervals as non-matches for number queries", () => {
       const intervalSet = new IntervalSet();
       intervalSet.addInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(10n) });
       intervalSet.addInterval({ a: new IntervalNumber(20n), b: new IntervalNumber(30n) });
 
-      // Note: getIntervalsContaining takes number, but bigint intervals
-      // will throw when comparing finite number with bigint
-      expect(() => intervalSet.getIntervalsContaining(5)).toThrow();
+      expect(intervalSet.getIntervalsContaining(5)).toEqual([]);
+    });
+
+    it("should still return compatible intervals from a mixed-type set", () => {
+      const intervalSet = new IntervalSet({ options: { mergeAddedInterval: false } });
+      intervalSet.addInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(10n) });
+      intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(10) });
+
+      const intervals = intervalSet.getIntervalsContaining(5);
+
+      expect(intervals).toHaveLength(1);
+      expect(intervals[0].toString()).toBe("[1, 10]");
     });
 
     it("should not merge bigint intervals when mergeAddedInterval is false", () => {
@@ -1612,14 +1621,23 @@ describe("IntervalSet construction with options", () => {
       expect(intervalSet.intervals[1].toString()).toBe("[5n, 15n]");
     });
 
-    it("should handle containsNumber with bigint intervals using number parameter", () => {
+    it("should treat incompatible bigint intervals as non-matches for number queries", () => {
       const intervalSet = new IntervalSet();
       intervalSet.addInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(10n) });
       intervalSet.addInterval({ a: new IntervalNumber(20n), b: new IntervalNumber(30n) });
 
-      // Note: getIntervalsContaining takes number, but bigint intervals
-      // will throw when comparing finite number with bigint
-      expect(() => intervalSet.getIntervalsContaining(5)).toThrow();
+      expect(intervalSet.getIntervalsContaining(5)).toEqual([]);
+    });
+
+    it("should still return compatible intervals from a mixed-type set", () => {
+      const intervalSet = new IntervalSet({ options: { mergeAddedInterval: false } });
+      intervalSet.addInterval({ a: new IntervalNumber(1n), b: new IntervalNumber(10n) });
+      intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(10) });
+
+      const intervals = intervalSet.getIntervalsContaining(5);
+
+      expect(intervals).toHaveLength(1);
+      expect(intervals[0].toString()).toBe("[1, 10]");
     });
 
     it("should not merge bigint intervals when mergeAddedInterval is false", () => {

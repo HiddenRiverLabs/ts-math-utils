@@ -570,9 +570,8 @@ export class Interval implements IInterval {
    * @param a - First numeric value
    * @param b - Second numeric value
    * @returns true if types are compatible, false otherwise
-   * @private
    */
-  private static areTypesCompatible(a: NumericValue, b: NumericValue): boolean {
+  public static areTypesCompatible(a: NumericValue, b: NumericValue): boolean {
     const typeA = typeof a;
     const typeB = typeof b;
     const aIsInfinite = typeA === "number" && !isFinite(a as number);

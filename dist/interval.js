@@ -492,7 +492,6 @@ export class Interval {
      * @param a - First numeric value
      * @param b - Second numeric value
      * @returns true if types are compatible, false otherwise
-     * @private
      */
     static areTypesCompatible(a, b) {
         const typeA = typeof a;
