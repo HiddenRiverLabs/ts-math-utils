@@ -2,6 +2,7 @@
 
 ![Jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-2.2.1-blue.svg)
 
 Math-based objects not included in JS, built in TS.
 
