@@ -2,17 +2,22 @@
 
 ![Jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)
+![Version](https://img.shields.io/badge/version-2.2.1-blue.svg)
 
 Math-based objects not included in JS, built in TS.
 
 ## Installation
 
 **npm:**
+
 ```bash
 npm install ts-math-utils
 ```
 
+The npm package includes generated TypeScript declaration files.
+
 **JSR:**
+
 ```bash
 npx jsr add @hrl/ts-math-utils
 ```
@@ -64,6 +69,7 @@ The `IntervalSet` class manages a collection of `Interval` objects with advanced
 **Configuration:**
 
 `IntervalSetOptions` controls set behavior:
+
 - `mergeAddedInterval: boolean` (default `true`) — When `true`, overlapping or adjacent intervals are automatically merged when added.
 
 **Features:**
@@ -81,7 +87,7 @@ The `IntervalSet` class manages a collection of `Interval` objects with advanced
 - Gap and containment queries:
   - `.getIntervalGaps([interval])` — Returns intervals representing gaps between existing intervals, or gaps within a provided interval.
   - `.createIntervalGap(interval)` — Creates a gap in the set by splitting or trimming intervals.
-  - `.getIntervalsContaining(x)` — Returns intervals containing a specific number.
+  - `.getIntervalsContaining(x)` — Returns intervals containing a specific number or bigint.
 - String representation:
   - `.toString()` — Returns a comma-separated string of all intervals in mathematical notation.
 - Accessors:
@@ -121,7 +127,8 @@ The `range()` function creates an iterable for a specified `IInterval` with a co
 
 - Accepts an `IInterval` or string representation of an `Interval`.
 - Default step is `1`.
-- Loop forever by passing `Infinity` as an endpoint.
+- Loop forever by passing `Infinity` as the ending endpoint.
+- The starting endpoint must be finite.
 - If either endpoint is bigint, all values are evaluated and yielded as bigint.
 - The step sign is ignored; iteration direction is always determined by the interval's `a` → `b` endpoint order.
 

@@ -1,6 +1,6 @@
 {
   "name": "ts-math-utils",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Math-based objects not included in JS, built in TS.",
   "keywords": [
     "Infinity",
@@ -27,10 +27,16 @@
   "directories": {
     "test": "test"
   },
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "lint": "oxlint 'src/**/*.ts' 'test/**/*.ts'",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
+    "lint": "oxlint src test",
     "format": "oxfmt --write .",
     "build": "tsc",
     "test": "jest",
