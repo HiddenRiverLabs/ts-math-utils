@@ -190,6 +190,18 @@ describe("IntervalSet", () => {
     expect(intervalSet.intervals[2].toString()).toBe("[20, 30]"); // This should still exist!
   });
 
+  it("should trim overlapping intervals on both sides of a created gap", () => {
+    const intervalSet = new IntervalSet({ options: { mergeAddedInterval: false } });
+    intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(5) });
+    intervalSet.addInterval({ a: new IntervalNumber(8), b: new IntervalNumber(12) });
+
+    intervalSet.createIntervalGap({ a: new IntervalNumber(3), b: new IntervalNumber(10) });
+
+    expect(intervalSet.intervals).toHaveLength(2);
+    expect(intervalSet.intervals[0].toString()).toBe("[1, 3)");
+    expect(intervalSet.intervals[1].toString()).toBe("(10, 12]");
+  });
+
   it("should not create a gap if the interval does not exist", () => {
     const intervalSet = new IntervalSet();
     intervalSet.addInterval({ a: new IntervalNumber(1), b: new IntervalNumber(10) });

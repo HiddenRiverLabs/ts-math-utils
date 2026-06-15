@@ -1,3 +1,4 @@
+import { areTypesCompatible as areTypesCompatibleValue, compareNumeric as compareNumericValue, parseIntervalString, } from "./intervalUtils";
 /**
  * Represents a numeric endpoint in an interval with an inclusivity flag.
  *
@@ -83,7 +84,7 @@ export class Interval {
         this._b = value;
     }
     get min() {
-        return this._a.number < this._b.number ? this._a : this._b;
+        return compareNumericValue(this._a.number, this._b.number) < 0 ? this._a : this._b;
     }
     set min(value) {
         value = Interval.toIntervalNumber(value);
@@ -99,7 +100,7 @@ export class Interval {
         }
     }
     get max() {
-        return this._a.number > this._b.number ? this._a : this._b;
+        return compareNumericValue(this._a.number, this._b.number) > 0 ? this._a : this._b;
     }
     set max(value) {
         value = Interval.toIntervalNumber(value);
@@ -494,11 +495,7 @@ export class Interval {
      * @returns true if types are compatible, false otherwise
      */
     static areTypesCompatible(a, b) {
-        const typeA = typeof a;
-        const typeB = typeof b;
-        const aIsInfinite = typeA === "number" && !isFinite(a);
-        const bIsInfinite = typeB === "number" && !isFinite(b);
-        return typeA === typeB || aIsInfinite || bIsInfinite;
+        return areTypesCompatibleValue(a, b);
     }
     /**
      * Safely compares two numeric values (number or bigint).
@@ -517,61 +514,7 @@ export class Interval {
      * Interval.compareNumeric(5n, 5)        // Throws: "Cannot compare bigint with finite number"
      */
     static compareNumeric(a, b) {
-        if (typeof a === "bigint" && typeof b === "bigint") {
-            return a < b ? -1 : a > b ? 1 : 0;
-        }
-        if (typeof a === "number" && typeof b === "number") {
-            if (a < b)
-                return -1;
-            if (a > b)
-                return 1;
-            return 0;
-        }
-        // Mixed types: allow comparison only when the numeric side is infinite
-        if (typeof a === "bigint" && typeof b === "number") {
-            if (!isFinite(b)) {
-                return b === Infinity ? -1 : 1;
-            }
-            throw new Error("Cannot compare bigint with finite number");
-        }
-        if (typeof a === "number" && typeof b === "bigint") {
-            if (!isFinite(a)) {
-                return a === Infinity ? 1 : -1;
-            }
-            throw new Error("Cannot compare finite number with bigint");
-        }
-        // fallback
-        return 0;
-    }
-    /**
-     * Parses a numeric string into a NumericValue (number or bigint).
-     *
-     * Handles bigint notation (suffix 'n'), standard numbers, Infinity/-Infinity,
-     * and various number formats (hex, octal, binary).
-     *
-     * @param str - The string to parse
-     * @returns A number or bigint value
-     * @throws Error if the string is not a valid numeric value
-     * @private
-     */
-    static parseNumericString(str) {
-        const trimmed = str.trim();
-        // Handle BigInt notation (ends with 'n')
-        if (trimmed.endsWith("n")) {
-            try {
-                const bigintPart = BigInt(trimmed.slice(0, -1));
-                return bigintPart;
-            }
-            catch {
-                throw new Error(`Invalid bigint string: ${str}`);
-            }
-        }
-        // Use Number() for everything else (handles hex, octal, binary automatically)
-        const num = Number(trimmed);
-        if (isNaN(num)) {
-            throw new Error(`Invalid numeric string: ${str}`);
-        }
-        return num;
+        return compareNumericValue(a, b);
     }
     /**
      * Validates whether an interval meets all requirements.
@@ -590,13 +533,9 @@ export class Interval {
     static validInterval(interval) {
         const aIsValid = typeof interval.a.number === "number" || typeof interval.a.number === "bigint";
         const bIsValid = typeof interval.b.number === "number" || typeof interval.b.number === "bigint";
-        // Allow a numeric Infinity/-Infinity to be paired with a bigint endpoint.
-        const aIsInfinite = typeof interval.a.number === "number" && !isFinite(interval.a.number);
-        const bIsInfinite = typeof interval.b.number === "number" && !isFinite(interval.b.number);
-        const sameTypeOrInfinite = typeof interval.a.number === typeof interval.b.number || aIsInfinite || bIsInfinite;
         return (aIsValid &&
             bIsValid &&
-            sameTypeOrInfinite &&
+            areTypesCompatibleValue(interval.a.number, interval.b.number) &&
             (interval.a.number !== interval.b.number || (interval.a.isClosed && interval.b.isClosed)));
     }
     /**
@@ -634,30 +573,7 @@ export class Interval {
      * Interval.toInterval('[-Infinity, 0)') // Works with Infinity
      */
     static toInterval(interval) {
-        const intervalTrimmed = interval.trim();
-        const startSymbol = intervalTrimmed[0];
-        const endSymbol = intervalTrimmed[intervalTrimmed.length - 1];
-        if ((startSymbol !== "(" && startSymbol !== "[") || (endSymbol !== ")" && endSymbol !== "]")) {
-            throw new Error(`Invalid interval string: ${interval}`);
-        }
-        const commaIndex = intervalTrimmed.indexOf(",");
-        if (commaIndex === -1) {
-            throw new Error(`Invalid interval string: missing comma in ${interval}`);
-        }
-        const a = intervalTrimmed.slice(1, commaIndex).trim();
-        const b = intervalTrimmed.slice(commaIndex + 1, intervalTrimmed.length - 1).trim();
-        const aNum = Interval.parseNumericString(a);
-        const bNum = Interval.parseNumericString(b);
-        const aIsClosed = startSymbol === "[";
-        const bIsClosed = endSymbol === "]";
-        const iInterval = {
-            a: new IntervalNumber(aNum, aIsClosed),
-            b: new IntervalNumber(bNum, bIsClosed),
-        };
-        if (!Interval.validInterval(iInterval)) {
-            throw new Error(`Invalid interval string: ${interval}`);
-        }
-        return iInterval;
+        return parseIntervalString(interval, (value, isClosed) => new IntervalNumber(value, isClosed), Interval.validInterval);
     }
     /**
      * Converts a value to an IntervalNumber.

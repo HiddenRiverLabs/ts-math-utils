@@ -44,88 +44,12 @@ export function range(
         );
       }
 
-      // If any value is bigint, use bigint math
       if (typeof start === "bigint" || typeof end === "bigint" || typeof step === "bigint") {
-        // Validate that number endpoints are integers before converting to bigint
-        if (typeof start === "number" && isFinite(start) && !Number.isInteger(start)) {
-          throw new Error(`Cannot convert non-integer start value ${start} to bigint`);
-        }
-        if (typeof end === "number" && isFinite(end) && !Number.isInteger(end)) {
-          throw new Error(`Cannot convert non-integer end value ${end} to bigint`);
-        }
-        if (typeof step === "number" && !Number.isInteger(step)) {
-          throw new Error(`Cannot convert non-integer step value ${step} to bigint`);
-        }
-
-        // Handle Infinity properly - don't convert to bigint
-        const startBig = start === Infinity || start === -Infinity ? start : BigInt(start);
-        const endBig = end === Infinity || end === -Infinity ? end : BigInt(end);
-        const absStepBig =
-          typeof step === "bigint" ? (step < 0n ? -step : step) : BigInt(Math.abs(step));
-
-        // Use Interval.compareNumeric for type-safe comparison
-        const comparison = Interval.compareNumeric(startBig, endBig);
-        const ascending = comparison < 0;
-        const actualStep = ascending ? absStepBig : -absStepBig;
-
-        let current = startBig;
-        if (!startClosed && typeof current === "bigint") {
-          current += actualStep;
-        }
-
-        // Iterate using type-safe comparison
-        while (true) {
-          try {
-            const cmp = Interval.compareNumeric(current, endBig);
-
-            // Check if we've passed the end
-            if (ascending && cmp > 0) break;
-            if (!ascending && cmp < 0) break;
-
-            // Check if we're at the end boundary
-            if (cmp === 0 && !endClosed) break;
-
-            yield current;
-
-            // Increment (if current is bigint)
-            if (typeof current === "bigint") {
-              current += actualStep;
-            } else {
-              // current is Infinity - infinite iteration
-              break;
-            }
-          } catch {
-            // compareNumeric throws if types are incompatible
-            break;
-          }
-        }
+        yield* rangeBigInt(start, end, startClosed, endClosed, step);
         return;
       }
 
-      // Otherwise, use number math with integer scaling for decimals
-      const decimals = Math.max(
-        getDecimalPlaces(Number(start)),
-        getDecimalPlaces(Number(end)),
-        getDecimalPlaces(Number(step)),
-      );
-      const factor = Math.pow(10, decimals);
-
-      let current = Math.round(Number(start) * factor);
-      const endInt = Math.round(Number(end) * factor);
-      const absStep = Math.abs(Number(step));
-      const stepInt = Math.round(absStep * factor);
-      const ascending = end > start;
-      const actualStep = ascending ? stepInt : -stepInt;
-
-      if (!startClosed) current += actualStep;
-
-      while (
-        (ascending && (current < endInt || (endClosed && current === endInt))) ||
-        (!ascending && (current > endInt || (endClosed && current === endInt)))
-      ) {
-        yield current / factor;
-        current += actualStep;
-      }
+      yield* rangeNumber(start, end, startClosed, endClosed, step);
     } catch (error: Error | unknown) {
       if (error instanceof Error) {
         throw new Error(`Invalid interval: ${error.message}`);
@@ -133,4 +57,79 @@ export function range(
       throw new Error(`Invalid interval: ${String(error)}`);
     }
   })();
+}
+
+export function* rangeBigInt(
+  start: NumericValue,
+  end: NumericValue,
+  startClosed: boolean,
+  endClosed: boolean,
+  step: NumericValue,
+): Iterable<NumericValue> {
+  if (typeof start === "number" && isFinite(start) && !Number.isInteger(start)) {
+    throw new Error(`Cannot convert non-integer start value ${start} to bigint`);
+  }
+  if (typeof end === "number" && isFinite(end) && !Number.isInteger(end)) {
+    throw new Error(`Cannot convert non-integer end value ${end} to bigint`);
+  }
+  if (typeof step === "number" && !Number.isInteger(step)) {
+    throw new Error(`Cannot convert non-integer step value ${step} to bigint`);
+  }
+
+  const startBig = start === Infinity || start === -Infinity ? start : BigInt(start);
+  const endBig = end === Infinity || end === -Infinity ? end : BigInt(end);
+  const absStepBig = typeof step === "bigint" ? (step < 0n ? -step : step) : BigInt(Math.abs(step));
+  const ascending = Interval.compareNumeric(startBig, endBig) < 0;
+  const actualStep = ascending ? absStepBig : -absStepBig;
+
+  let current = startBig;
+  if (!startClosed && typeof current === "bigint") {
+    current += actualStep;
+  }
+
+  while (true) {
+    try {
+      const cmp = Interval.compareNumeric(current, endBig);
+      if (ascending && cmp > 0) break;
+      if (!ascending && cmp < 0) break;
+      if (cmp === 0 && !endClosed) break;
+
+      yield current;
+
+      if (typeof current === "bigint") {
+        current += actualStep;
+      } else {
+        break;
+      }
+    } catch {
+      break;
+    }
+  }
+}
+
+function* rangeNumber(
+  start: number,
+  end: number,
+  startClosed: boolean,
+  endClosed: boolean,
+  step: number,
+): Iterable<number> {
+  const decimals = Math.max(getDecimalPlaces(start), getDecimalPlaces(end), getDecimalPlaces(step));
+  const factor = Math.pow(10, decimals);
+
+  let current = Math.round(start * factor);
+  const endInt = Math.round(end * factor);
+  const stepInt = Math.round(Math.abs(step) * factor);
+  const ascending = end > start;
+  const actualStep = ascending ? stepInt : -stepInt;
+
+  if (!startClosed) current += actualStep;
+
+  while (
+    (ascending && (current < endInt || (endClosed && current === endInt))) ||
+    (!ascending && (current > endInt || (endClosed && current === endInt)))
+  ) {
+    yield current / factor;
+    current += actualStep;
+  }
 }
